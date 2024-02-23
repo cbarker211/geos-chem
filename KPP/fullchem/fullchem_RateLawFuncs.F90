@@ -25,7 +25,7 @@ MODULE fullchem_RateLawFuncs
 !
 ! !DEFINED PARAMETERS:
 !
-  ! Indices for aerosol type (1 .. NAEROTYPE=14)
+  ! Indices for aerosol type (1 .. NAEROTYPE=15) (updated to 15 crb, 21/02/24)
   INTEGER,  PRIVATE, PARAMETER :: DU1            = 1  ! Dust (Reff = 0.151 um)
   INTEGER,  PRIVATE, PARAMETER :: DU2            = 2  ! Dust (Reff = 0.253 um)
   INTEGER,  PRIVATE, PARAMETER :: DU3            = 3  ! Dust (Reff = 0.402 um)
@@ -38,8 +38,9 @@ MODULE fullchem_RateLawFuncs
   INTEGER,  PRIVATE, PARAMETER :: ORC            = 10 ! Organic Carbon
   INTEGER,  PRIVATE, PARAMETER :: SSA            = 11 ! Accum-mode sea salt
   INTEGER,  PRIVATE, PARAMETER :: SSC            = 12 ! Coarse-mode sea salt
-  INTEGER,  PRIVATE, PARAMETER :: SLA            = 13 ! Strat sulfate liq aer
-  INTEGER,  PRIVATE, PARAMETER :: IIC            = 14 ! Irregular ice cloud
+  INTEGER,  PRIVATE, PARAMETER :: ALU            = 13 ! Alumina (crb, 21/02/24)
+  INTEGER,  PRIVATE, PARAMETER :: SLA            = 14 ! Strat sulfate liq aer
+  INTEGER,  PRIVATE, PARAMETER :: IIC            = 15 ! Irregular ice cloud
 
   ! Indices for Fine and Coarse sea-salt indices
   INTEGER,  PRIVATE, PARAMETER :: SS_FINE        = 1
@@ -1219,7 +1220,7 @@ CONTAINS
     ! Computes the rate [1/s] of ClNO3(g) + HCl(l,s).
     !
     TYPE(HetState), INTENT(IN) :: H              ! Hetchem State
-    REAL(dp)                   :: k              ! Rxn rate [1/s]
+    REAL(dp)                   :: k, k_before    ! Rxn rate [1/s]
     !
     REAL(dp) :: branchIce, dum1,     dum2
     REAL(dp) :: gamma,     gammaIce, srMw
@@ -1248,6 +1249,14 @@ CONTAINS
        CALL Gam_ClNO3_Ice( H, gammaIce, branchIce, dum1, dum2 )
        k = k + CloudHet( H, srMw, 0.0_dp, gammaIce, 0.0_dp, branchIce )
     ENDIF
+    !
+    gamma = 0.02_dp
+    k_before = k
+    k = k + Ars_L1K( H%xArea(ALU), H%xRadi(ALU), gamma, srMw )
+    IF (k > k_before) THEN
+       print 300, k_before, k
+    ENDIF
+    300 format('k has increased from',e12.3, 1x, 'to',1x, e12.3)
     !
     ! Assume ClNO3 is limiting, so recompute reaction rate accordingly
     k = kIIR1Ltd( C(ind_ClNO3), C(ind_HCl), k )

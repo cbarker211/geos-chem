@@ -132,6 +132,12 @@ CONTAINS
     H%OMOC_POA      = State_Chm%OMOC_POA(I,J)
     H%OMOC_OPOA     = State_Chm%OMOC_OPOA(I,J)
 
+    ! Print aerosol radii
+    print 100, H%xRadi(1),H%xRadi(2),H%xRadi(3),H%xRadi(4),H%xRadi(5),H%xRadi(6),H%xRadi(7)
+    100 format ('Dust Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
+    print 110, H%xRadi(8),H%xRadi(9),H%xRadi(10),H%xRadi(11),H%xRadi(12),H%xRadi(13),H%xRadi(14),H%xRadi(15)
+    110 format ('Else Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
+
     ! HSO3 and SO3 concentrations in cloud [mol/L]
     H%HSO3_aq       = State_Chm%HSO3_aq(I,J,L)
     H%SO3_aq        = State_Chm%SO3_aq(I,J,L)
