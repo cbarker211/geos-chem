@@ -710,7 +710,7 @@ CONTAINS
     CHARACTER(LEN=255)      :: chmId,      thisLoc
 
     ! String arrays
-    CHARACTER(LEN=31)       :: fieldId(14)
+    CHARACTER(LEN=31)       :: fieldId(15) !(updated to 15 crb, 21/02/24)
 
     ! Objects
     TYPE(Species),  POINTER :: ThisSpc
@@ -1022,6 +1022,7 @@ CONTAINS
     !========================================================================
     ! Allocate and initialize quantities that are only relevant for the
     ! the various FULLCHEM simulations or the AEROSOL-ONLY simulation
+    ! Updated to include alumina aerosol after hygroscopic (crb, 21/02/24)
     !========================================================================
     IF ( Input_Opt%ITS_A_FULLCHEM_SIM .or. Input_Opt%ITS_AN_AEROSOL_SIM ) THEN
 
@@ -1049,7 +1050,8 @@ CONTAINS
                     'AeroAreaMDUST7   ', 'AeroAreaSULF     ',                &
                     'AeroAreaBC       ', 'AeroAreaOC       ',                &
                     'AeroAreaSSA      ', 'AeroAreaSSC      ',                &
-                    'AeroAreaBGSULF   ', 'AeroAreaICEI     '                /)
+                    'AeroAreaALU      ', 'AeroAreaBGSULF   ',                &
+                    'AeroAreaICEI     '                                     /)
 
        ! Allocate and register each field individually
        DO N = 1, State_Chm%nAeroType
@@ -1079,7 +1081,8 @@ CONTAINS
                     'AeroRadiMDUST7   ', 'AeroRadiSULF     ',                &
                     'AeroRadiBC       ', 'AeroRadiOC       ',                &
                     'AeroRadiSSA      ', 'AeroRadiSSC      ',                &
-                    'AeroRadiBGSULF   ', 'AeroRadiICEI     '               /)
+                    'AeroRadiALU      ', 'AeroRadiBGSULF   ',                &
+                    'AeroRadiICEI     '                                     /)
 
        ! Allocate and register each field individually
        DO N = 1, State_Chm%nAeroType
@@ -1109,7 +1112,8 @@ CONTAINS
                     'WetAeroAreaMDUST7', 'WetAeroAreaSULF  ',                &
                     'WetAeroAreaBC    ', 'WetAeroAreaOC    ',                &
                     'WetAeroAreaSSA   ', 'WetAeroAreaSSC   ',                &
-                    'WetAeroAreaBGSULF', 'WetAeroAreaICEI  '               /)
+                    'WetAeroAreaALU   ', 'WetAeroAreaBGSULF',                &
+                    'WetAeroAreaICEI  '                                     /)
 
        ! Allocate and register each field individually
        DO N = 1, State_Chm%nAeroType
@@ -1139,7 +1143,8 @@ CONTAINS
                     'WetAeroRadiMDUST7', 'WetAeroRadiSULF  ',                &
                     'WetAeroRadiBC    ', 'WetAeroRadiOC    ',                &
                     'WetAeroRadiSSA   ', 'WetAeroRadiSSC   ',                &
-                    'WetAeroRadiBGSULF', 'WetAeroRadiICEI  '               /)
+                    'WetAeroRadiALU   ', 'WetAeroRadiBGSULF',                &
+                    'WetAeroRadiICEI  '                                     /)
 
        ! Allocate and register each field individually
        DO N = 1, State_Chm%nAeroType
@@ -1169,7 +1174,8 @@ CONTAINS
                     'AeroH2OMDUST7    ', 'AeroH2OSNA       ',                &
                     'AeroH2OBC        ', 'AeroH2OOC        ',                &
                     'AeroH2OSSA       ', 'AeroH2OSSC       ',                &
-                    'AeroH2OBGSULF    ', 'AeroH2OICEI      '               /)
+                    'AeroH2OALU       ', 'AeroH2OBGSULF    ',                &
+                    'AeroH2OICEI      '                                     /)
 
        ! Allocate and register each field individually
        DO N = 1, State_Chm%nAeroType
@@ -1788,7 +1794,8 @@ CONTAINS
                     'KhetiSLABrNO3HCl ', 'KhetiSLAHOClHCl  ',             &
                     'KhetiSLAHOClHBr  ', 'KhetiSLAHOBrHCl  ',             &
                     'KhetiSLAHOBrHBr  ', '                 ',             &
-                    '                 ', '                 '            /)
+                    '                 ', '                 ',             &
+                    '                 '                                   /)
 
        ! Allocate and register each field individually
        nKHLSA = 11
@@ -4083,6 +4090,11 @@ CONTAINS
           IF ( isUnits ) Units = 'cm2 cm-3'
           IF ( isRank  ) Rank  = 3
 
+       CASE ( 'AEROAREAALU' )
+          IF ( isDesc  ) Desc  = 'Dry aerosol area for alumina'
+          IF ( isUnits ) Units = 'cm2 cm-3'
+          IF ( isRank  ) Rank  = 3
+
        CASE ( 'AEROAREABGSULF' )
           IF ( isDesc  ) Desc  = 'Dry aerosol area for background' &
                                    // ' stratospheric sulfate'
@@ -4159,6 +4171,11 @@ CONTAINS
           IF ( isUnits ) Units = 'cm'
           IF ( isRank  ) Rank  = 3
 
+       CASE ( 'AERORADIALU' )
+          IF ( isDesc  ) Desc  = 'Dry aerosol radius for alumina'
+          IF ( isUnits ) Units = 'cm'
+          IF ( isRank  ) Rank  = 3
+
        CASE ( 'AERORADIBGSULF' )
           IF ( isDesc  ) Desc  = 'Dry aerosol radius for background' &
                                  // ' stratospheric sulfate'
@@ -4229,6 +4246,11 @@ CONTAINS
 
        CASE ( 'WETAEROAREASSC' )
           IF ( isDesc  ) Desc  = 'Wet aerosol area for sea salt, coarse mode'
+          IF ( isUnits ) Units = 'cm2 cm-3'
+          IF ( isRank  ) Rank  = 3
+
+       CASE ( 'WETAEROAREAALU' )
+          IF ( isDesc  ) Desc  = 'Wet aerosol area for alumina'
           IF ( isUnits ) Units = 'cm2 cm-3'
           IF ( isRank  ) Rank  = 3
 
@@ -4329,6 +4351,11 @@ CONTAINS
 !          IF ( isUnits ) Units = 'cm'
 !          IF ( isRank  ) Rank  = 3
 
+       CASE ( 'WETAERORADIALU' )
+          IF ( isDesc  ) Desc  = 'Wet aerosol radius for alumina'
+          IF ( isUnits ) Units = 'cm'
+          IF ( isRank  ) Rank  = 3
+
        CASE ( 'WETAERORADIBGSULF' )
           IF ( isDesc  ) Desc  = 'Wet aerosol radius for background' &
                                 // ' stratospheric sulfate'
@@ -4399,6 +4426,11 @@ CONTAINS
 
        CASE ( 'AEROH2OSSC' )
           IF ( isDesc  ) Desc  = 'Aerosol H2O content for sea salt, coarse mode'
+          IF ( isUnits ) Units = 'cm3(H2O) cm-3(air)'
+          IF ( isRank  ) Rank  = 3
+
+       CASE ( 'AEROH2OALU' )
+          IF ( isDesc  ) Desc  = 'Aerosol H2O content for alumina'
           IF ( isUnits ) Units = 'cm3(H2O) cm-3(air)'
           IF ( isRank  ) Rank  = 3
 

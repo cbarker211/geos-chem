@@ -628,6 +628,9 @@ MODULE State_Diag_Mod
      REAL(f4),           POINTER :: AerMassSO4(:,:,:)
      LOGICAL                     :: Archive_AerMassSO4
 
+     REAL(f4),           POINTER :: AerMassAL2O3(:,:,:)
+     LOGICAL                     :: Archive_AerMassAL2O3
+
      REAL(f4),           POINTER :: AerMassSOAGX(:,:,:)
      LOGICAL                     :: Archive_AerMassSOAGX
 
@@ -2040,6 +2043,9 @@ CONTAINS
 
     State_Diag%AerMassSO4                          => NULL()
     State_Diag%Archive_AerMassSO4                  = .FALSE.
+    
+    State_Diag%AerMassAL2O3                        => NULL()
+    State_Diag%Archive_AerMassAL2O3                = .FALSE.
 
     State_Diag%AerMassSOAGX                        => NULL()
     State_Diag%Archive_AerMassSOAGX                = .FALSE.
@@ -9125,6 +9131,29 @@ CONTAINS
        ENDIF
 
        !-------------------------------------------------------------------
+       ! Aerosol mass of AL2O3 [ug/m3]
+       ! (crb, 08/02/23)
+       !-------------------------------------------------------------------
+       diagID = 'AerMassAL2O3'
+       CALL Init_and_Register(                                               &
+            Input_Opt      = Input_Opt,                                      &
+            State_Chm      = State_Chm,                                      &
+            State_Diag     = State_Diag,                                     &
+            State_Grid     = State_Grid,                                     &
+            DiagList       = Diag_List,                                      &
+            TaggedDiagList = TaggedDiag_List,                                &
+            Ptr2Data       = State_Diag%AerMassAL2O3,                        &
+            archiveData    = State_Diag%Archive_AerMassAL2O3,                &
+            diagId         = diagId,                                         &
+            RC             = RC                                             )
+            
+       IF ( RC /= GC_SUCCESS ) THEN
+          errMsg = TRIM( errMsg_ir ) // TRIM( diagId )
+          CALL GC_Error( errMsg, RC, thisLoc )
+          RETURN
+       ENDIF
+
+       !-------------------------------------------------------------------
        ! PM2.5, aka prticulate matter with (r < 2.5 um) [ug/m3]
        !-------------------------------------------------------------------
        diagID = 'PM25'
@@ -9483,7 +9512,7 @@ CONTAINS
        ! being requested as diagnostic output when the corresponding
        ! array has not been allocated.
        !-------------------------------------------------------------------
-       DO N = 1, 25
+       DO N = 1, 26
 
           ! Select the diagnostic ID
           SELECT CASE( N )
@@ -9540,6 +9569,8 @@ CONTAINS
                 diagID = 'AerMassHMS'
              CASE( 25 ) ! (jmm, 06/29/18)
                 diagID = 'ProdSO2andHCHOfromHMSinCloud'
+             CASE( 26 ) ! (crb, 08/02/24)
+                diagID = 'AerMassAL2O3'
           END SELECT
 
           ! Exit if any of the above are in the diagnostic list
@@ -11922,6 +11953,7 @@ CONTAINS
                                    State_Diag%Archive_AerMassSAL        .or. &
                                    State_Diag%Archive_AerMassSO4        .or. &
                                    State_Diag%Archive_AerMassHMS        .or. &  !(jmm, 06/29/18)
+                                   State_Diag%Archive_AerMassAL2O3      .or. &  !(crb, 08/02/24)
                                    State_Diag%Archive_AerMassSOAGX      .or. &
                                    State_Diag%Archive_AerMassSOAIE      .or. &
                                    State_Diag%Archive_AerMassTSOA       .or. &
@@ -13287,6 +13319,11 @@ CONTAINS
 
     CALL Finalize( diagId   = 'AerMassSO4',                                  &
                    Ptr2Data = State_Diag%AerMassSO4,                         &
+                   RC       = RC                                            )
+    IF ( RC /= GC_SUCCESS ) RETURN
+
+    CALL Finalize( diagId   = 'AerMassAL2O3',                                &
+                   Ptr2Data = State_Diag%AerMassAL2O3,                       &
                    RC       = RC                                            )
     IF ( RC /= GC_SUCCESS ) RETURN
 
@@ -15568,6 +15605,11 @@ CONTAINS
 
     ELSE IF ( TRIM( Name_AllCaps ) == 'AERMASSSO4' ) THEN
        IF ( isDesc    ) Desc  = 'Mass of sulfate aerosol'
+       IF ( isUnits   ) Units = 'ug m-3'
+       IF ( isRank    ) Rank  =  3
+
+    ELSE IF ( TRIM( Name_AllCaps ) == 'AERMASSAL203' ) THEN
+       IF ( isDesc    ) Desc  = 'Mass of alumina aerosol'
        IF ( isUnits   ) Units = 'ug m-3'
        IF ( isRank    ) Rank  =  3
 
