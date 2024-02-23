@@ -1763,10 +1763,30 @@ CONTAINS
                 ! Wet dust WTAREA and WERADIUS are archived in dust_mod.F90.
                 !========================================================
 
+                ! Print aerosol radii
+                !IF ( I == 1 .AND. J == 1 .AND. L == 1) THEN
+                !   print 225
+                !   225 format ('Before ERADIUS(I,J,L,N+NDUST) = 1.0D-4 * REFF')
+                !   print 230, State_Chm%AeroRadi(1,1,1,1),State_Chm%AeroRadi(1,1,1,2),State_Chm%AeroRadi(1,1,1,3),State_Chm%AeroRadi(1,1,1,4),State_Chm%AeroRadi(1,1,1,5),State_Chm%AeroRadi(1,1,1,6),State_Chm%AeroRadi(1,1,1,7)
+                !   230 format ('Dust Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
+                !   print 240, State_Chm%AeroRadi(1,1,1,8),State_Chm%AeroRadi(1,1,1,9),State_Chm%AeroRadi(1,1,1,10),State_Chm%AeroRadi(1,1,1,11),State_Chm%AeroRadi(1,1,1,12),State_Chm%AeroRadi(1,1,1,13),State_Chm%AeroRadi(1,1,1,14),State_Chm%AeroRadi(1,1,1,15)
+                !   240 format ('Else Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
+                !ENDIF
+
                 !get scaling for R and VOL
                 SCALER                 = REFF / RW(1)
                 SCALEVOL               = SCALER**3
                 ERADIUS(I,J,L,N+NDUST) = 1.0D-4 * REFF
+
+                ! Print aerosol radii
+                !IF ( I == 1 .AND. J == 1 .AND. L == 1) THEN
+                !   print 125
+                !   125 format ('After ERADIUS(I,J,L,N+NDUST) = 1.0D-4 * REFF')
+                !   print 130, State_Chm%AeroRadi(1,1,1,1),State_Chm%AeroRadi(1,1,1,2),State_Chm%AeroRadi(1,1,1,3),State_Chm%AeroRadi(1,1,1,4),State_Chm%AeroRadi(1,1,1,5),State_Chm%AeroRadi(1,1,1,6),State_Chm%AeroRadi(1,1,1,7)
+                !   130 format ('Dust Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
+                !   print 140, State_Chm%AeroRadi(1,1,1,8),State_Chm%AeroRadi(1,1,1,9),State_Chm%AeroRadi(1,1,1,10),State_Chm%AeroRadi(1,1,1,11),State_Chm%AeroRadi(1,1,1,12),State_Chm%AeroRadi(1,1,1,13),State_Chm%AeroRadi(1,1,1,14),State_Chm%AeroRadi(1,1,1,15)
+                !   140 format ('Else Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
+                !ENDIF
 
                 ! Store aerosol surface areas in TAREA, and be sure
                 ! to list them following the dust surface areas
@@ -1863,6 +1883,14 @@ CONTAINS
 
        ENDDO !Loop over NAER
     ENDDO !End loop over NWVS
+
+    ! Print aerosol radii
+    print 145
+    145 format ('After Wavelength Loop')
+    print 150, State_Chm%AeroRadi(1,1,1,1),State_Chm%AeroRadi(1,1,1,2),State_Chm%AeroRadi(1,1,1,3),State_Chm%AeroRadi(1,1,1,4),State_Chm%AeroRadi(1,1,1,5),State_Chm%AeroRadi(1,1,1,6),State_Chm%AeroRadi(1,1,1,7)
+    150 format ('Dust Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
+    print 155, State_Chm%AeroRadi(1,1,1,8),State_Chm%AeroRadi(1,1,1,9),State_Chm%AeroRadi(1,1,1,10),State_Chm%AeroRadi(1,1,1,11),State_Chm%AeroRadi(1,1,1,12),State_Chm%AeroRadi(1,1,1,13),State_Chm%AeroRadi(1,1,1,14),State_Chm%AeroRadi(1,1,1,15)
+    155 format ('Else Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
 
     !==============================================================
     ! Account for stratospheric aerosols (SDE 04/17/13)
