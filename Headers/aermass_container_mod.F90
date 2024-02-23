@@ -48,6 +48,7 @@ MODULE AerMass_Container_Mod
      ! SO4_NH4_NIT : Lumped SO4-NH4-NIT aerosol         [kg/m3]
      ! SO4         : Sulfate aerosol                    [kg/m3]
      ! HMS         : Hydroxymethane sulfonate aerosol   [kg/m3]
+     ! AL2O3       : Alumina aerosol                    [kg/m3] !(crb, 21/02/24)
      ! NH4         : Ammonium aerosol                   [kg/m3]
      ! NIT         : Inorganic nitrate aerosol          [kg/m3]
      ! SLA         : Stratospheric liquid aerosol       [kg/m3]
@@ -78,6 +79,7 @@ MODULE AerMass_Container_Mod
      REAL(fp), POINTER :: SO4_NH4_NIT(:,:,:)
      REAL(fp), POINTER :: SO4        (:,:,:)
      REAL(fp), POINTER :: HMS        (:,:,:)
+     REAL(fp), POINTER :: AL2O3      (:,:,:)
      REAL(fp), POINTER :: NH4        (:,:,:)
      REAL(fp), POINTER :: NIT        (:,:,:)
      REAL(fp), POINTER :: SLA        (:,:,:)
@@ -290,6 +292,16 @@ CONTAINS
        RETURN
     ENDIF
     Aer%HMS = 0.0_fp
+
+    ! (crb, 19/02/24)
+    ALLOCATE( Aer%AL2O3( NX, NY, NZ ), STAT=RC )
+    CALL GC_CheckVar( 'AL2O3', 0, RC )
+    IF ( RC /= GC_SUCCESS ) THEN
+       errMsg = 'Error allocating array AL2O3!'
+       CALL GC_Error( errMsg, RC, thisLoc )
+       RETURN
+    ENDIF
+    Aer%AL2O3 = 0.0_fp
 
     ALLOCATE( Aer%NH4( NX, NY, NZ ), STAT=RC )
     CALL GC_CheckVar( 'NH4', 0, RC )
@@ -560,6 +572,13 @@ CONTAINS
        CALL GC_CheckVar( 'Aer%HMS', 2, RC )
        IF ( RC /= GC_SUCCESS ) RETURN
        Aer%HMS => NULL()
+    ENDIF
+
+    IF ( ASSOCIATED( Aer%AL2O3 ) ) THEN
+       DEALLOCATE( Aer%AL2O3, STAT=RC )
+       CALL GC_CheckVar( 'Aer%AL2O3', 2, RC )
+       IF ( RC /= GC_SUCCESS ) RETURN
+       Aer%AL2O3 => NULL()
     ENDIF
 
     IF ( ASSOCIATED( Aer%NH4 ) ) THEN

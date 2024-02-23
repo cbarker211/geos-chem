@@ -1749,6 +1749,7 @@ CONTAINS
     REAL(fp),      POINTER :: SO4_NH4_NIT (:,:,:)
     REAL(fp),      POINTER :: SO4         (:,:,:)
     REAL(fp),      POINTER :: HMS         (:,:,:)
+    REAL(fp),      POINTER :: AL2O3       (:,:,:) !(crb, 21/02/24)
     REAL(fp),      POINTER :: NH4         (:,:,:)
     REAL(fp),      POINTER :: NIT         (:,:,:)
     REAL(fp),      POINTER :: SLA         (:,:,:)
@@ -1817,6 +1818,7 @@ CONTAINS
     SO4_NH4_NIT => State_Chm%AerMass%SO4_NH4_NIT
     SO4         => State_Chm%AerMass%SO4
     HMS         => State_Chm%AerMass%HMS
+    AL2O3       => State_Chm%AerMass%AL2O3 !(crb, 21/02/24)
     NH4         => State_Chm%AerMass%NH4
     NIT         => State_Chm%AerMass%NIT
     SLA         => State_Chm%AerMass%SLA
@@ -2026,6 +2028,14 @@ CONTAINS
        ENDIF
 
        !--------------------------------------
+       ! AerMassAL2O3 [ug/m3]
+       ! crb 09/02/24
+       !--------------------------------------
+       IF ( State_Diag%Archive_AerMassAL2O3 ) THEN
+          State_Diag%AerMassAL2O3(I,J,L) = AL2O3(I,J,L) * kgm3_to_ugm3
+       ENDIF
+
+       !--------------------------------------
        ! AerMassHMS [ug/m3]
        ! jmm 3/6/19
        !--------------------------------------
@@ -2141,6 +2151,7 @@ CONTAINS
     SO4_NH4_NIT => NULL()
     SO4         => NULL()
     HMS         => NULL()
+    AL2O3       => NULL() !(crb, 21/02/24)
     NH4         => NULL()
     NIT         => NULL()
     SLA         => NULL()
