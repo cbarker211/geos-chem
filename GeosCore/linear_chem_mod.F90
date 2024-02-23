@@ -262,6 +262,12 @@ CONTAINS
     ENDIF
 10  FORMAT( '     - DO_LINEAR_CHEM: Linearized chemistry at ', a )
 
+    ! Print aerosol radii
+    print 100, State_Chm%AeroRadi(1,1,1,1),State_Chm%AeroRadi(1,1,1,2),State_Chm%AeroRadi(1,1,1,3),State_Chm%AeroRadi(1,1,1,4),State_Chm%AeroRadi(1,1,1,5),State_Chm%AeroRadi(1,1,1,6),State_Chm%AeroRadi(1,1,1,7)
+    100 format ('Dust Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
+    print 110, State_Chm%AeroRadi(1,1,1,8),State_Chm%AeroRadi(1,1,1,9),State_Chm%AeroRadi(1,1,1,10),State_Chm%AeroRadi(1,1,1,11),State_Chm%AeroRadi(1,1,1,12),State_Chm%AeroRadi(1,1,1,13),State_Chm%AeroRadi(1,1,1,14),State_Chm%AeroRadi(1,1,1,15)
+    110 format ('Else Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
+
 #if !defined( MODEL_CESM )
     !=======================================================================
     ! On first call, establish pointers to data fields read by HEMCO. These
