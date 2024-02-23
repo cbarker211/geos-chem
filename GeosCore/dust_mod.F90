@@ -1319,7 +1319,7 @@ CONTAINS
     DUST      => State_Chm%SoilDust     ! Dust aerosol Conc. [kg/m3]
 
     ! Index for dust in ODAER and LUT arrays
-    IDST      = 8
+    IDST      = 9
 
     ! Dust density
     MSDENS(1) = 2500.0_fp
@@ -1699,9 +1699,9 @@ CONTAINS
     REAL(fp)            :: DD, RD, DM
     REAL(fp)            :: TOTAL_AREA, DF_TOTAL_AREA
     REAL(fp)            :: DST_d (NDSTBIN), ALK, GAMS, GAMN
-    REAL(fp)            :: SULF_AREA, BC_AREA, OC_AREA
-    REAL(fp)            :: SULF_RAD, BC_RAD, OC_RAD
-    REAL(fp)            :: SULF_FAC, BC_FAC, OC_FAC
+    REAL(fp)            :: SULF_AREA, BC_AREA, OC_AREA, ALU_AREA
+    REAL(fp)            :: SULF_RAD, BC_RAD, OC_RAD, ALU_RAD
+    REAL(fp)            :: SULF_FAC, BC_FAC, OC_FAC, ALU_FAC
     REAL(fp)            :: SSA_AREA, SSC_AREA
     REAL(fp)            :: SSA_RAD, SSC_RAD
     REAL(fp)            :: SSA_FAC, SSC_FAC
@@ -1781,6 +1781,7 @@ CONTAINS
     OC_AREA   = TAREA(I,J,L,NDUST+3)
     SSA_AREA  = TAREA(I,J,L,NDUST+4)
     SSC_AREA  = TAREA(I,J,L,NDUST+5)
+    ALU_AREA  = TAREA(I,J,L,NDUST+6)
 
     ! tdf Now get aerosol effective radius from ERADIUS (cm)
     SULF_RAD  = ERADIUS(I,J,L,NDUST+1)
@@ -1788,6 +1789,7 @@ CONTAINS
     OC_RAD    = ERADIUS(I,J,L,NDUST+3)
     SSA_RAD   = ERADIUS(I,J,L,NDUST+4)
     SSC_RAD   = ERADIUS(I,J,L,NDUST+5)
+    ALU_RAD   = ERADIUS(I,J,L,NDUST+6)
 
     ! tdf Quotients [s/cm] used to weight surface area for H2SO4 uptake
     SULF_FAC = (SULF_RAD / DG + 4.e+0_fp/(V*GAMMA_H2SO4) )
@@ -1795,6 +1797,7 @@ CONTAINS
     OC_FAC   = (  OC_RAD / DG + 4.e+0_fp/(V*GAMMA_H2SO4) )
     SSA_FAC  = ( SSA_RAD / DG + 4.e+0_fp/(V*GAMMA_H2SO4) )
     SSC_FAC  = ( SSC_RAD / DG + 4.e+0_fp/(V*GAMMA_H2SO4) )
+    ALU_FAC  = ( ALU_RAD / DG + 4.e+0_fp/(V*GAMMA_H2SO4) )
 
     !tdf Surface areas and effective radii for sub-bins 1-4 of dust bin 1
     DO ISBIN = 1, 4
@@ -1849,7 +1852,7 @@ CONTAINS
     END DO
 
     ! tdf total aerosol surface area  [cm^2/cm^3]
-    TOTAL_AREA = SULF_AREA + BC_AREA + OC_AREA + SSA_AREA  + SSC_AREA + &
+    TOTAL_AREA = SULF_AREA + BC_AREA + OC_AREA + SSA_AREA  + SSC_AREA + ALU_AREA + &
                  AREA_d(1) + AREA_d(2) + AREA_d(3) + AREA_d(4)
 
     ! tdf total surface area weighted by gas-phase diffusion limitation [1/s]
@@ -1858,6 +1861,7 @@ CONTAINS
                     OC_AREA   / OC_FAC   + &
                     SSA_AREA  / SSA_FAC  + &
                     SSC_AREA  / SSC_FAC  + &
+                    ALU_AREA  / ALU_FAC  + &
                     DF_AREA_d(1)         + &
                     DF_AREA_d(2)         + &
                     DF_AREA_d(3)         + &

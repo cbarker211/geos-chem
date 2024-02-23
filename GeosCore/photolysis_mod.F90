@@ -873,7 +873,7 @@ CONTAINS
     CHARACTER(LEN=255) :: ThisLoc
 
     ! String arrays
-    CHARACTER(LEN=30)  :: SPECFIL(8)
+    CHARACTER(LEN=30)  :: SPECFIL(9) !(updated to 9 crb, 21/02/24)
 
     ! Pointers
     REAL*8, POINTER :: WVAA  (:,:)    
@@ -938,8 +938,8 @@ CONTAINS
     !(DAR 05/2015)
     DATA SPECFIL /"so4.dat","soot.dat","org.dat", &
                   "ssa.dat","ssc.dat",            &
-                  "h2so4.dat","h2so4.dat",        &
-                  "dust.dat"/
+                  "so4.dat","h2so4.dat",          &
+                  "h2so4.dat","dust.dat"/             ! (crb, 19/02/24)
 
     ! Loop over the array of filenames
     DO k = 1, State_Chm%Phot%NSPAA
@@ -1405,7 +1405,7 @@ CONTAINS
 !
     CHARACTER(LEN=255) :: ErrMsg, ThisLoc
     INTEGER            :: I, J, K
-    INTEGER            :: IND(NRHAER)
+    INTEGER            :: IND(NRHAER-1)
     INTEGER,   POINTER :: MIEDX(:)
 
     !=================================================================
@@ -1446,7 +1446,7 @@ CONTAINS
     MIEDX(10) = 21   !  Mineral Dust 4.0  micron    (rvm, 9/30/00)
 
     ! Aerosols
-    DO I=1,NRHAER
+    DO I=1,NRHAER-1
        DO J=1,NRH
           MIEDX(10+((I-1)*NRH)+J)=IND(I)+J-1
        ENDDO
@@ -1454,11 +1454,11 @@ CONTAINS
 
     ! Stratospheric aerosols - SSA/STS and solid PSCs
 #ifdef FASTJX
-    MIEDX(10+(NRHAER*NRH)+1) = 4  ! SSA/LBS/STS
+    MIEDX(10+((NRHAER-1)*NRH)+1) = 4  ! SSA/LBS/STS
 #else
-    MIEDX(10+(NRHAER*NRH)+1) = 1  ! SSA/LBS/STS
+    MIEDX(10+((NRHAER-1)*NRH)+1) = 1  ! SSA/LBS/STS
 #endif
-    MIEDX(10+(NRHAER*NRH)+2) = 14 ! NAT/ice PSCs
+    MIEDX(10+((NRHAER-1)*NRH)+2) = 14 ! NAT/ice PSCs
 
     ! Ensure all 'AN_' types are valid selections
     do i=1,AN_

@@ -573,6 +573,7 @@ CONTAINS
 
              !---------------------------------------
              ! Aerosols undergoing hydroscopic growth
+             ! NRHAER to NRHAER-1 to skip alumina (crb, 21/02/24)
              !--------------------------------------
              IF ( State_Met%InChemGrid(I,J,L) ) THEN
 
@@ -613,7 +614,7 @@ CONTAINS
                 IF ( Input_Opt%LSULF .AND. State_Met%InTroposphere(I,J,L) ) THEN
 
                    ! Get indexes to optical property LUT
-                   S_rh0 = 3 + NDUST + NRHAER*(SO4_ind-1) + 1  ! SO4 index for RH=0 in NDXAER
+                   S_rh0 = 3 + NDUST + (NRHAER-1)*(SO4_ind-1) + 1  ! SO4 index for RH=0 in NDXAER
                    S_rhx = S_rh0 + RH_ind - 1  ! Sulfate index for this RH
                    K_rh0 = NDXAER(L,S_rh0)     ! index for RH=0 in FJX_spec-aer.dat
                    K_rhx = NDXAER(L,S_rhx)     ! index for this RH in FJX_spec-aer.dat
@@ -649,7 +650,7 @@ CONTAINS
                    !----------------------------------------------------
 
                    ! Get indexes to optical property LUT
-                   S_rh0 = 3 + NDUST + NRHAER*(BC_ind-1) + 1  ! BC index for RH=0 in NDXAER
+                   S_rh0 = 3 + NDUST + (NRHAER-1)*(BC_ind-1) + 1  ! BC index for RH=0 in NDXAER
                    S_rhx = S_rh0 + RH_ind - 1  ! BC index for this RH
                    K_rh0 = NDXAER(L,S_rh0)     ! index for RH=0 in FJX_spec-aer.dat
                    K_rhx = NDXAER(L,S_rhx)     ! index for this RH in FJX_spec-aer.dat
@@ -698,7 +699,7 @@ CONTAINS
                    !----------------------------------------------------
 
                    ! Get indexes to optical property LUT
-                   S_rh0 = 3 + NDUST + NRHAER*(OC_ind-1) + 1  ! OC index for RH=0 in NDXAER
+                   S_rh0 = 3 + NDUST + (NRHAER-1)*(OC_ind-1) + 1  ! OC index for RH=0 in NDXAER
                    S_rhx = S_rh0 + RH_ind - 1  ! OC index for this RH
                    K_rh0 = NDXAER(L,S_rh0)     ! index for RH=0 in FJX_spec-aer.dat
                    K_rhx = NDXAER(L,S_rhx)     ! index for this RH in FJX_spec-aer.dat
@@ -736,7 +737,7 @@ CONTAINS
                    !----------------------------------------------------
 
                    ! Get indexes to optical property LUT
-                   S_rh0 = 3 + NDUST + NRHAER*(SALA_ind-1) + 1  ! SALA index for RH=0 in NDXAER
+                   S_rh0 = 3 + NDUST + (NRHAER-1)*(SALA_ind-1) + 1  ! SALA index for RH=0 in NDXAER
                    S_rhx = S_rh0 + RH_ind - 1  ! SALA index for this RH
                    K_rh0 = NDXAER(L,S_rh0)     ! index for RH=0 in FJX_spec-aer.dat
                    K_rhx = NDXAER(L,S_rhx)     ! index for this RH in FJX_spec-aer.dat
@@ -764,7 +765,7 @@ CONTAINS
                    !----------------------------------------------------
 
                    ! Get indexes to optical property LUT
-                   S_rh0 = 3 + NDUST + NRHAER*(SALC_ind-1) + 1  ! SALC index for RH=0 in NDXAER
+                   S_rh0 = 3 + NDUST + (NRHAER-1)*(SALC_ind-1) + 1  ! SALC index for RH=0 in NDXAER
                    S_rhx = S_rh0 + RH_ind - 1  ! SALC index for this RH
                    K_rh0 = NDXAER(L,S_rh0)     ! index for RH=0 in FJX_spec-aer.dat
                    K_rhx = NDXAER(L,S_rhx)     ! index for this RH in FJX_spec-aer.dat
@@ -801,13 +802,13 @@ CONTAINS
              ! depth computed in GEOS-Chem is non-zero.
 
              !  SSA/LBS/STS
-             IF ( State_Chm%Phot%ODAER(I,J,L,State_Chm%Phot%IWV1000,6) > 0._fp ) THEN
+             IF ( State_Chm%Phot%ODAER(I,J,L,State_Chm%Phot%IWV1000,7) > 0._fp ) THEN
                 AERSP(L,36) = State_Chm%Species(id_SO4)%Conc(I,J,L) &
                      * MW_g / AVO * BoxHt * 1e+6_fp
              ENDIF
 
              !  NAT/ice PSCs
-             IF ( State_Chm%Phot%ODAER(I,J,L,State_Chm%Phot%IWV1000,7) > 0._fp ) THEN
+             IF ( State_Chm%Phot%ODAER(I,J,L,State_Chm%Phot%IWV1000,8) > 0._fp ) THEN
                 AERSP(L,37) = State_Chm%Species(id_SO4)%Conc(I,J,L) &
                      * MW_g / AVO * BoxHt * 1e+6_fp
              ENDIF

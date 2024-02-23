@@ -88,6 +88,7 @@ MODULE AEROSOL_MOD
   INTEGER :: id_TSOA1, id_TSOA2, id_TSOA3, id_TSOA0
   INTEGER :: id_ASOAN, id_ASOA1, id_ASOA2, id_ASOA3
   INTEGER :: id_DUST01, id_SOAS,  id_SALACL, id_HMS   ! (jmm, 06/29/18)
+  INTEGER :: id_AL2O3                                 ! (crb, 07/02/24)
   INTEGER :: id_SOAGX, id_SOAIE
   INTEGER :: id_INDIOL,id_LVOCOA
 
@@ -95,7 +96,7 @@ MODULE AEROSOL_MOD
   ! NOTE: Increasing value of NRHAER in CMN_SIZE_Mod.F90 (e.g. if there is
   ! a new hygroscopic species) requires manual update of this mapping
   ! (ewl, 1/23/17)
-  INTEGER  :: Map_NRHAER(5)
+  INTEGER  :: Map_NRHAER(6) ! Increased to 6 (crb, 21/02/24)
   
 CONTAINS
 !EOC
@@ -616,6 +617,13 @@ CONTAINS
        ENDIF
 
 #endif
+       !===========================================================
+       ! A L U M I N A  A E R O S O L
+       !
+       ! Compute alumina concentration [kg/m3] (crb, 07/02/24)
+       !===========================================================
+
+       State_Chm%AerMass%AL2O3(I,J,L) = Spc(id_AL2O3)%Conc(I,J,L) / AIRVOL(I,J,L)
 
        !===========================================================
        ! S E A S A L T   A E R O S O L S
@@ -1321,6 +1329,22 @@ CONTAINS
 
     ENDIF
 
+    !===========================================================
+    ! A L U M I N A  A E R O S O L
+    ! (crb, 19/02/24)
+    !=================================================================
+    !$OMP PARALLEL DO       &
+    !$OMP DEFAULT( SHARED ) &
+    !$OMP PRIVATE( I, J, L )
+    DO L = 1, State_Grid%NZ
+    DO J = 1, State_Grid%NY
+    DO I = 1, State_Grid%NX
+       State_Chm%AerMass%WAERSL(I,J,L,6) = State_Chm%AerMass%AL2O3(I,J,L)
+    ENDDO
+    ENDDO
+    ENDDO
+    !$OMP END PARALLEL DO
+
     ! Transfer stratospheric aerosol data
     ! SDE 04/17/13
     State_Chm%AerMass%WAERSL(:,:,:,NRHAER+1) = State_Chm%AerMass%SLA
@@ -1347,6 +1371,7 @@ CONTAINS
     ENDIF
     MSDENS(4) = State_Chm%SpcData(id_SALA)%Info%Density
     MSDENS(5) = State_Chm%SpcData(id_SALC)%Info%Density
+    MSDENS(6) = State_Chm%SpcData(id_AL2O3)%Info%Density ! (crb, 19/02/24)
 
     ! These default values unused (actively retrieved from ucx_mod)
     MSDENS(NRHAER+1) = 1700.0d0 ! SSA/STS
@@ -1696,6 +1721,7 @@ CONTAINS
                 !  Hygroscopic growth of Organic Carbon     [unitless]
                 !  Hygroscopic growth of Sea Salt (accum)   [unitless]
                 !  Hygroscopic growth of Sea Salt (coarse)  [unitless]
+                !  Hygroscopic growth of Alumina            [unitless] !(crb, 21/02/24)
                 IF ( State_Diag%Archive_AerHygGrowth .AND. &
                      L <= State_Grid%MaxChemLev      .AND. &
                      ODSWITCH.EQ.1 ) THEN
@@ -2001,6 +2027,7 @@ CONTAINS
                 !  Organic Carbon Optical Depth (lambda1,2,3 nm)[.]
                 !  Sea Salt (accum) Opt Depth (lambda1,2,3 nm)  [.]
                 !  Sea Salt (coarse) Opt Depth(lambda1,2,3 nm)  [.]
+                !  Alumina Optical Depth (lambda1,2,3 nm)       [.] !(crb, 21/02/24)
                 IF ( .not. LINTERP ) THEN
                    IF ( State_Diag%Archive_AODHygWL1 .AND. IsWL1 ) THEN
                       S = State_Diag%Map_AODHygWL1%id2slot(NA)
@@ -2112,6 +2139,7 @@ CONTAINS
           !  Organic Carbon (hydrophilic) Surface Area  [cm2/cm3]
           !  Sea Salt (accum) Surface Area              [cm2/cm3]
           !  Sea Salt (coarse) Surface Area             [cm2/cm3]
+          !  Alumina Surface Area                       [cm2/cm3] !(crb, 21/02/24)
           !----------------------------------------------------
           S = State_Diag%Map_AerSurfAreaHyg%id2slot(NA)
           IF ( S > 0 ) THEN
@@ -2140,6 +2168,7 @@ CONTAINS
     ! To turn off the radiative effects of different aerososl
     ! uncomment the following lines
     !=================================================================
+    ODAER(:,:,:,:,6) = 0.d0  !Alumina (19/02/24)
     !DO R = 1,NRH
     !  ODAER(:,:,:,R)       = 0.d0  !sulfate
     !  ODAER(:,:,:,R+NRH)   = 0.d0  !BC
@@ -2277,6 +2306,7 @@ CONTAINS
     id_SO4    = Ind_( 'SO4'    )
     id_SO4s   = Ind_( 'SO4s'   )
     id_HMS    = Ind_( 'HMS'    )
+    id_AL2O3  = Ind_( 'AL2O3'  )  ! (crb, 19/02/24)
     id_NITs   = Ind_( 'NITs'   )
     id_POA1   = Ind_( 'POA1'   )
     id_POA2   = Ind_( 'POA2'   )
@@ -2338,9 +2368,11 @@ CONTAINS
           Map_NRHAER(N) = 4
        CASE ( 'SALC' )
           Map_NRHAER(N) = 5
+       CASE ( 'AL2O3' ) !(crb, 21/02/24)
+          Map_NRHAER(N) = 6
        CASE DEFAULT
           ErrMsg = 'WARNING: aerosol diagnostics not defined' // &
-                   ' for NRHAER greater than 5!'
+                   ' for NRHAER greater than 6!' !(crb, 21/02/24)
           CALL GC_ERROR( ErrMsg, RC, 'Init_Aerosol in aerosol_mod.F90' )
        END SELECT
 
