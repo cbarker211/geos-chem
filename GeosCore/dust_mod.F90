@@ -1415,9 +1415,9 @@ CONTAINS
           !SSA and ASYM copying seems a little redundant...
           !will keep this way for uniformity for now but
           !possibly could deal with SSA and ASYM in RT module
-          RTODAER(I,J,L,IWV,NAER+2+N) = ODMDUST(I,J,L,IWV,N)
-          RTSSAER(I,J,L,IWV,NAER+2+N) = SSAA(IWV,N,IDST)
-          RTASYMAER(I,J,L,IWV,NAER+2+N) = ASYMAA(IWV,N,IDST)
+          RTODAER(I,J,L,IWV,NAER+2+N-1) = ODMDUST(I,J,L,IWV,N)
+          RTSSAER(I,J,L,IWV,NAER+2+N-1) = SSAA(IWV,N,IDST)
+          RTASYMAER(I,J,L,IWV,NAER+2+N-1) = ASYMAA(IWV,N,IDST)
 #endif
 
        ENDDO

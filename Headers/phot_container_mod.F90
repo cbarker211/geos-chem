@@ -641,7 +641,7 @@ CONTAINS
        ! Phot%RTODAER   (:,:,:,:,:)
        ! +2 to split SNA into SU, NI and AM
        ALLOCATE( Phot%RTODAER( State_Grid%NX, State_Grid%NY, State_Grid%NZ, &
-                               Phot%NWVAA, NAER+2+NDUST ), STAT=RC )
+                               Phot%NWVAA, NAER+2+NDUST-1 ), STAT=RC )
        IF ( RC /= GC_SUCCESS ) THEN
           errMsg = 'Error allocating array RTODAER!'
           CALL GC_Error( errMsg, RC, thisLoc )
@@ -651,7 +651,7 @@ CONTAINS
 
        ! Phot%RTSSAER   (:,:,:,:,:)
        ALLOCATE( Phot%RTSSAER( State_Grid%NX, State_Grid%NY, State_Grid%NZ, &
-                               Phot%NWVAA, NAER+2+NDUST ), STAT=RC )
+                               Phot%NWVAA, NAER+2+NDUST-1 ), STAT=RC )
        IF ( RC /= GC_SUCCESS ) THEN
           errMsg = 'Error allocating array RTSSAER!'
           CALL GC_Error( errMsg, RC, thisLoc )
@@ -661,7 +661,7 @@ CONTAINS
        
        ! Phot%RTASYMAER (:,:,:,:,:)
        ALLOCATE( Phot%RTASYMAER( State_Grid%NX, State_Grid%NY, State_Grid%NZ, &
-                                 Phot%NWVAA, NAER+2+NDUST ), STAT=RC )
+                                 Phot%NWVAA, NAER+2+NDUST-1 ), STAT=RC )
        IF ( RC /= GC_SUCCESS ) THEN
           errMsg = 'Error allocating array RTASYMAER!'
           CALL GC_Error( errMsg, RC, thisLoc )

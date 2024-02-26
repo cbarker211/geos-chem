@@ -1457,8 +1457,10 @@ CONTAINS
 
           ! NRT is subscript for RT arrays that contain SNA separately
           ! so their optics can be treated separately in future
-          IF (N.GT.1) THEN
+          IF (N.GT.1 .and. N.LT.6 ) THEN
              NRT=N+2
+          ELSE IF (N.GE.7) THEN
+             NRT=N+1
           ELSE
              NRT=N
           ENDIF
@@ -1695,6 +1697,8 @@ CONTAINS
                    RTSSAER(I,J,L,IWV,N+IR-1)   = SCALESSA*SSAA(IWV,1,N)
                    RTASYMAER(I,J,L,IWV,N+IR-1) = SCALEASY*ASYMAA(IWV,1,N)
                 ENDDO
+             ELSE IF (N.EQ.6) THEN
+                CONTINUE
              ELSE
                 !RT arrays now offset from NAER by 2 (NRT=N+2 for N>1)
                 !This will automatically be added after the standard aerosol
