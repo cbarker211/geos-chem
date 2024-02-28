@@ -1771,7 +1771,12 @@ CONTAINS
                 !get scaling for R and VOL
                 SCALER                 = REFF / RW(1)
                 SCALEVOL               = SCALER**3
-                ERADIUS(I,J,L,N+NDUST) = 1.0D-4 * REFF
+                IF (N == 6) THEN
+                   ERADIUS(I,J,L,N+NDUST) = SCALER * State_Chm%SpcData(id_AL2O3)%Info%Radius * 1.0D2
+                ELSE 
+                   ERADIUS(I,J,L,N+NDUST) = 1.0D-4 * REFF
+                ENDIF
+
 
                 ! Store aerosol surface areas in TAREA, and be sure
                 ! to list them following the dust surface areas
