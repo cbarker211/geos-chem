@@ -167,6 +167,7 @@ MODULE UCX_MOD
   INTEGER :: id_HNO4,    id_HOBr,     id_HOCl,   id_N2O,   id_N2O5
   INTEGER :: id_NIT,     id_NO,       id_NO2,    id_NO3,   id_O3
   INTEGER :: id_OClO,    id_PAN,      id_SO2,   id_SO4
+  INTEGER :: id_AL2O3, id_BCPO, id_DST1, id_DST2, id_DST3, id_DST4   !(crb, 27/02/24)
 
 CONTAINS
 !
@@ -802,9 +803,9 @@ CONTAINS
     LOGICAL                :: NATCOL
 
     ! Specific to each class
-    REAL(fp)               :: RWET(2),CONST_V(2)
-    REAL(fp)               :: RHO(2),RATIO_R(2),REFF(2)
-    REAL(fp)               :: VTS(State_Grid%NZ,2)
+    REAL(fp)               :: RWET(8),CONST_V(8)
+    REAL(fp)               :: RHO(8),RATIO_R(2),REFF(2)
+    REAL(fp)               :: VTS(State_Grid%NZ,8)
 
     ! Used for old Seinfeld & Pandis slip factor calc
     REAL(fp)               :: sp_Lambda, sp_Num
@@ -815,6 +816,12 @@ CONTAINS
     ! Indexing
     INTEGER, PARAMETER     :: IBC  = 1
     INTEGER, PARAMETER     :: ILIQ = 2
+    INTEGER, PARAMETER     :: IALU = 3 !(crb 27/02/24)
+    INTEGER, PARAMETER     :: IDST1 = 4 !(crb 27/02/24)
+    INTEGER, PARAMETER     :: IDST2 = 5 !(crb 27/02/24)
+    INTEGER, PARAMETER     :: IDST3 = 6 !(crb 27/02/24)
+    INTEGER, PARAMETER     :: IDST4 = 7 !(crb 27/02/24)
+    INTEGER, PARAMETER     :: IBCPO = 8 !(crb 27/02/24)
     INTEGER, PARAMETER     :: NSETTLE = 2
     INTEGER                :: IAERO
     LOGICAL                :: RUNCALC
@@ -846,6 +853,7 @@ CONTAINS
     TYPE(SpcConc), POINTER :: Spc(:)
     REAL(f4), POINTER      :: STATE_PSC(:,:,:)
     REAL(fp), POINTER      :: WERADIUS(:,:,:,:)
+    REAL(fp), POINTER      :: ERADIUS(:,:,:,:)
 
     !=================================================================
     ! SETTLE_STRAT_AER begins here!
@@ -864,7 +872,8 @@ CONTAINS
     ! Initialize pointers
     Spc       => State_Chm%Species  ! Chemical species vector
     STATE_PSC => State_Chm%STATE_PSC   ! PSC type (Kirner et al. 2011, GMD)
-    WERADIUS  => State_Chm%WetAeroRadi ! Aerosol Radius [cm]
+    WERADIUS  => State_Chm%WetAeroRadi ! Wet Aerosol Radius [cm]
+    ERADIUS   => State_Chm%AeroRadi    ! Aerosol Radius [cm]
 
     ! Return if gravitational settling disabled
     IF (.not. LGRAVSTRAT) RETURN
@@ -925,17 +934,47 @@ CONTAINS
              ! Need to translate for BC radii
              IF ( State_Met%InChemGrid(I,J,L) ) THEN
                 RWET(IBC) = WERADIUS(I,J,L,2)*1.e-2_fp
+                RWET(IALU) = WERADIUS(I,J,L,13)*1.e-2_fp !Wet r in m. Index is N+NDUST (crb, 28/02/24)
+
+                !IF ( I == 1 .AND. J == 1 .AND. L == 1) THEN
+                !print 130, RWET(IBC), RWET(IALU)
+                !130 format ('InChemGrid. BCPI:',2x,e12.3,2x,'Alumina',e12.3)
+                !ENDIF
              ELSE
                 ! Use defaults, assume dry (!)
 #ifdef FASTJX
                 RWET(IBC) = RAA(State_Chm%Phot%IND999,29) * 1.0e-6_fp
 #else
                 RWET(IBC) = RAA(29) * 1.0e-6_fp
+                !Use dry radii in m (crb 27/02/24)
+                RWET(IALU)  = ERADIUS(I,J,L,13)*1.e-2_fp !Dry r in m. Index is N+NDUST (crb, 28/02/24)
+                !IF ( I == 1 .AND. J == 1 .AND. L == 1) THEN
+                !print 135, RWET(IBC), RWET(IALU)
+                !135 format ('NoChemGrid. BCPI:',2x,e12.3,2x,'Alumina',e12.3)
+                !ENDIF
 #endif
              ENDIF
 
              ! Taken from aerosol_mod (MSDENS(2))
              RHO(IBC) = BCDEN
+
+             !Use density from input files in kg/m3 following BCPI (crb, 27/02/24)
+             RHO(IALU)  = State_Chm%SpcData(id_AL2O3)%Info%Density 
+             RHO(IDST1) = State_Chm%SpcData(id_DST1)%Info%Density 
+             RHO(IDST2) = State_Chm%SpcData(id_DST2)%Info%Density 
+             RHO(IDST3) = State_Chm%SpcData(id_DST3)%Info%Density 
+             RHO(IDST4) = State_Chm%SpcData(id_DST4)%Info%Density 
+             RHO(IBCPO) = State_Chm%SpcData(id_BCPO)%Info%Density 
+
+             !DST1 is split into MDUST1-4 in FJX_scat-aer.dat
+             !So using species_database.yml value
+             RWET(IDST1) = State_Chm%SpcData(id_DST1)%Info%Radius
+
+             !Use dry radius in m from FJX_scat-aer.dat following BCPI (crb 27/02/24)
+             RWET(IBCPO) = RAA(29) * 1.0e-6_fp  ! Same value as BCPO above stratopause.
+             RWET(IDST2) = RAA(19) * 1.0e-6_fp
+             RWET(IDST3) = RAA(20) * 1.0e-6_fp
+             RWET(IDST4) = RAA(21) * 1.0e-6_fp
 
              ! Get aerosol properties
              RWET(ILIQ) = State_Chm%RAD_AER(I,J,L,I_SLA)*1.e-2_fp
@@ -963,7 +1002,7 @@ CONTAINS
              VISC = 1.458e-6_fp * (Temp)**(1.5e+0_fp) &
                     / ( Temp + 110.4e+0_fp )
 
-             DO IAERO=1,2
+             DO IAERO=1,8
                 IF (RWET(IAERO).le.TINY(0e+0_fp)) THEN
                    VTS(L,IAERO) = 0e+0_fp
                 ELSE
@@ -1026,7 +1065,7 @@ CONTAINS
        L    = State_Grid%NZ
        DELZ = State_Met%BXHEIGHT(I,J,L)
 
-       DO IAERO=1,2
+       DO IAERO=1,8
           CONST_V(IAERO) = 1.e+0_fp / (1.e+0_fp + DTCHEM * VTS(L,IAERO) / DELZ)
        ENDDO
 
@@ -1066,6 +1105,14 @@ CONTAINS
           ENDIF
        ENDDO
        Spc(id_BCPI)%Conc(I,J,L) = Spc(id_BCPI)%Conc(I,J,L) * CONST_V(IBC)
+
+       !(crb 27/02/24) 
+       !Spc(id_AL2O3)%Conc(I,J,L) = Spc(id_AL2O3)%Conc(I,J,L) * CONST_V(IALU)
+       !Spc(id_BCPO)%Conc(I,J,L)  = Spc(id_BCPO)%Conc(I,J,L)  * CONST_V(IBCPO)
+       !Spc(id_DST1)%Conc(I,J,L)  = Spc(id_DST1)%Conc(I,J,L)  * CONST_V(IDST1)
+       !Spc(id_DST2)%Conc(I,J,L)  = Spc(id_DST2)%Conc(I,J,L)  * CONST_V(IDST2)
+       !Spc(id_DST3)%Conc(I,J,L)  = Spc(id_DST3)%Conc(I,J,L)  * CONST_V(IDST3)
+       !Spc(id_DST4)%Conc(I,J,L)  = Spc(id_DST4)%Conc(I,J,L)  * CONST_V(IDST4)
 
        DO L = State_Grid%NZ-1,1,-1
           IF ( State_Met%InTroposphere(I,J,L+1) ) CYCLE
@@ -1114,6 +1161,38 @@ CONTAINS
                                * ( Spc(id_BCPI)%Conc(I,J,L) &
                                    + DTCHEM * VTS(L+1,IBC) / DELZ1 &
                                    * Spc(id_BCPI)%Conc(I,J,L+1) )
+          
+          !(crb 27/02/24) 
+          !Spc(id_AL2O3)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
+          !                     * VTS(L,IALU) / DELZ) &
+          !                     * ( Spc(id_AL2O3)%Conc(I,J,L) &
+          !                         + DTCHEM * VTS(L+1,IALU) / DELZ1 &
+          !                         * Spc(id_AL2O3)%Conc(I,J,L+1) )
+          !Spc(id_BCPO)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
+          !                     * VTS(L,IBCPO) / DELZ) &
+          !                     * ( Spc(id_BCPO)%Conc(I,J,L) &
+          !                         + DTCHEM * VTS(L+1,IBCPO) / DELZ1 &
+          !                         * Spc(id_BCPO)%Conc(I,J,L+1) )
+          !Spc(id_DST1)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
+          !                     * VTS(L,IDST1) / DELZ) &
+          !                     * ( Spc(id_DST1)%Conc(I,J,L) &
+          !                         + DTCHEM * VTS(L+1,IDST1) / DELZ1 &
+          !                         * Spc(id_DST1)%Conc(I,J,L+1) )
+          !Spc(id_DST2)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
+          !                     * VTS(L,IDST2) / DELZ) &
+          !                     * ( Spc(id_DST2)%Conc(I,J,L) &
+          !                         + DTCHEM * VTS(L+1,IDST2) / DELZ1 &
+          !                         * Spc(id_DST2)%Conc(I,J,L+1) )
+          !Spc(id_DST3)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
+          !                     * VTS(L,IDST2) / DELZ) &
+          !                     * ( Spc(id_DST3)%Conc(I,J,L) &
+          !                         + DTCHEM * VTS(L+1,IDST2) / DELZ1 &
+          !                         * Spc(id_DST3)%Conc(I,J,L+1) )
+          !Spc(id_DST4)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
+          !                     * VTS(L,IDST4) / DELZ) &
+          !                     * ( Spc(id_DST4)%Conc(I,J,L) &
+          !                         + DTCHEM * VTS(L+1,IDST4) / DELZ1 &
+          !                         * Spc(id_DST4)%Conc(I,J,L+1) )
        ENDDO
 
        ! Now perform trapezoidal scheme for particulates
@@ -4303,6 +4382,12 @@ CONTAINS
     id_O3    = Ind_('O3'        )
     id_SO2   = Ind_('SO2'       )
     id_SO4   = Ind_('SO4'       )
+    id_AL2O3 = Ind_('AL2O3'     ) !(crb 27/02/24)
+    id_BCPO  = Ind_('BCPO'      ) !(crb 27/02/24) 
+    id_DST1  = Ind_('DST1'      ) !(crb 27/02/24)
+    id_DST2  = Ind_('DST2'      ) !(crb 27/02/24)
+    id_DST3  = Ind_('DST3'      ) !(crb 27/02/24)
+    id_DST4  = Ind_('DST4'      ) !(crb 27/02/24)
 
     ! Print info
     IF ( Input_Opt%Verbose ) THEN
