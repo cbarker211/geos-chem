@@ -207,7 +207,7 @@ CONTAINS
     ! Constants
     Phot%IND999 = 5     ! Index in RAA & QAA of 999 nm
     Phot%NWVAA  = 41    ! # LUT wavelengths   (RRTMG)
-    Phot%NSPAA  = 9     ! # LUT species       (RRTMG)
+    Phot%NSPAA  = 9     ! # LUT species       (RRTMG) Increased to add alumina (crb, 28/02/24)
     Phot%NRAA   = 7     ! # LUT aerosol sizes (RRTMG)   
     Phot%NWVAA0 = 11    ! # non-RRTMG wavelengths
     Phot%NALBD  = 2     ! ??                     
@@ -640,6 +640,7 @@ CONTAINS
 #ifdef RRTMG
        ! Phot%RTODAER   (:,:,:,:,:)
        ! +2 to split SNA into SU, NI and AM
+       ! -1 to skip alumina (crb, 28/02/24)
        ALLOCATE( Phot%RTODAER( State_Grid%NX, State_Grid%NY, State_Grid%NZ, &
                                Phot%NWVAA, NAER+2+NDUST-1 ), STAT=RC )
        IF ( RC /= GC_SUCCESS ) THEN

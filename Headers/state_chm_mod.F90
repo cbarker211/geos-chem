@@ -710,7 +710,7 @@ CONTAINS
     CHARACTER(LEN=255)      :: chmId,      thisLoc
 
     ! String arrays
-    CHARACTER(LEN=31)       :: fieldId(15) !(updated to 15 crb, 21/02/24)
+    CHARACTER(LEN=31)       :: fieldId(15) !Updated to 15 for alumina (crb, 21/02/24)
 
     ! Objects
     TYPE(Species),  POINTER :: ThisSpc
@@ -4090,7 +4090,7 @@ CONTAINS
           IF ( isUnits ) Units = 'cm2 cm-3'
           IF ( isRank  ) Rank  = 3
 
-       CASE ( 'AEROAREAALU' )
+       CASE ( 'AEROAREAALU' ) !(crb, 21/02/24)
           IF ( isDesc  ) Desc  = 'Dry aerosol area for alumina'
           IF ( isUnits ) Units = 'cm2 cm-3'
           IF ( isRank  ) Rank  = 3
@@ -4171,7 +4171,7 @@ CONTAINS
           IF ( isUnits ) Units = 'cm'
           IF ( isRank  ) Rank  = 3
 
-       CASE ( 'AERORADIALU' )
+       CASE ( 'AERORADIALU' ) !(crb, 21/02/24)
           IF ( isDesc  ) Desc  = 'Dry aerosol radius for alumina'
           IF ( isUnits ) Units = 'cm'
           IF ( isRank  ) Rank  = 3
@@ -4249,7 +4249,7 @@ CONTAINS
           IF ( isUnits ) Units = 'cm2 cm-3'
           IF ( isRank  ) Rank  = 3
 
-       CASE ( 'WETAEROAREAALU' )
+       CASE ( 'WETAEROAREAALU' ) !(crb, 21/02/24)
           IF ( isDesc  ) Desc  = 'Wet aerosol area for alumina'
           IF ( isUnits ) Units = 'cm2 cm-3'
           IF ( isRank  ) Rank  = 3
@@ -4351,7 +4351,7 @@ CONTAINS
 !          IF ( isUnits ) Units = 'cm'
 !          IF ( isRank  ) Rank  = 3
 
-       CASE ( 'WETAERORADIALU' )
+       CASE ( 'WETAERORADIALU' ) !(crb, 21/02/24)
           IF ( isDesc  ) Desc  = 'Wet aerosol radius for alumina'
           IF ( isUnits ) Units = 'cm'
           IF ( isRank  ) Rank  = 3
@@ -4429,7 +4429,7 @@ CONTAINS
           IF ( isUnits ) Units = 'cm3(H2O) cm-3(air)'
           IF ( isRank  ) Rank  = 3
 
-       CASE ( 'AEROH2OALU' )
+       CASE ( 'AEROH2OALU' ) !(crb, 21/02/24)
           IF ( isDesc  ) Desc  = 'Aerosol H2O content for alumina'
           IF ( isUnits ) Units = 'cm3(H2O) cm-3(air)'
           IF ( isRank  ) Rank  = 3

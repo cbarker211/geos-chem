@@ -79,7 +79,7 @@ MODULE AerMass_Container_Mod
      REAL(fp), POINTER :: SO4_NH4_NIT(:,:,:)
      REAL(fp), POINTER :: SO4        (:,:,:)
      REAL(fp), POINTER :: HMS        (:,:,:)
-     REAL(fp), POINTER :: AL2O3      (:,:,:)
+     REAL(fp), POINTER :: AL2O3      (:,:,:) !(crb, 21/02/24)
      REAL(fp), POINTER :: NH4        (:,:,:)
      REAL(fp), POINTER :: NIT        (:,:,:)
      REAL(fp), POINTER :: SLA        (:,:,:)
@@ -574,7 +574,7 @@ CONTAINS
        Aer%HMS => NULL()
     ENDIF
 
-    IF ( ASSOCIATED( Aer%AL2O3 ) ) THEN
+    IF ( ASSOCIATED( Aer%AL2O3 ) ) THEN !(crb, 21/02/24)
        DEALLOCATE( Aer%AL2O3, STAT=RC )
        CALL GC_CheckVar( 'Aer%AL2O3', 2, RC )
        IF ( RC /= GC_SUCCESS ) RETURN

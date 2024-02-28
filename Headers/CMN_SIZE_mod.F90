@@ -43,7 +43,7 @@ MODULE CMN_SIZE_MOD
   INTEGER, PARAMETER :: NDUST = 7
 
   ! Number of aerosols undergoing hygroscopic growth
-  INTEGER, PARAMETER :: NRHAER = 6 !(updated to 6 crb, 21/02/24)
+  INTEGER, PARAMETER :: NRHAER = 6 !(updated to 6 for alumina crb, 21/02/24)
 
   ! Number of stratospheric aerosols (SDE 04/17/13)
   INTEGER, PARAMETER :: NSTRATAER = 2

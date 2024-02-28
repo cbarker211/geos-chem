@@ -873,7 +873,7 @@ CONTAINS
     CHARACTER(LEN=255) :: ThisLoc
 
     ! String arrays
-    CHARACTER(LEN=30)  :: SPECFIL(9) !(updated to 9 crb, 21/02/24)
+    CHARACTER(LEN=30)  :: SPECFIL(9) !Updated by 1 to account for alumina (crb, 21/02/24)
 
     ! Pointers
     REAL*8, POINTER :: WVAA  (:,:)    
@@ -936,10 +936,11 @@ CONTAINS
     ! but for now we are just treating the NAT like the sulfate... limited
     ! info but ref index is similar e.g. Scarchilli et al. (2005)
     !(DAR 05/2015)
+    ! Loading in so4.dat for alumina species (crb, 19/02/24)
     DATA SPECFIL /"so4.dat","soot.dat","org.dat", &
                   "ssa.dat","ssc.dat",            &
                   "so4.dat","h2so4.dat",          &
-                  "h2so4.dat","dust.dat"/             ! (crb, 19/02/24)
+                  "h2so4.dat","dust.dat"/             
 
     ! Loop over the array of filenames
     DO k = 1, State_Chm%Phot%NSPAA
@@ -1405,6 +1406,7 @@ CONTAINS
 !
     CHARACTER(LEN=255) :: ErrMsg, ThisLoc
     INTEGER            :: I, J, K
+    !We don't add alumina into cloud_j, so reduce the indices by 1 to skip (crb, 28/02/24)
     INTEGER            :: IND(NRHAER-1)
     INTEGER,   POINTER :: MIEDX(:)
 
@@ -1446,13 +1448,14 @@ CONTAINS
     MIEDX(10) = 21   !  Mineral Dust 4.0  micron    (rvm, 9/30/00)
 
     ! Aerosols
-    DO I=1,NRHAER-1
+    DO I=1,NRHAER-1 !(crb, 28/02/24)
        DO J=1,NRH
           MIEDX(10+((I-1)*NRH)+J)=IND(I)+J-1
        ENDDO
     ENDDO
 
-    ! Stratospheric aerosols - SSA/STS and solid PSCs
+    ! Stratospheric aerosols - SSA/STS and solid PSCs 
+    ! Reduce the indices by 1 to skip alumina (crb, 28/02/24)
 #ifdef FASTJX
     MIEDX(10+((NRHAER-1)*NRH)+1) = 4  ! SSA/LBS/STS
 #else

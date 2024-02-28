@@ -628,7 +628,7 @@ MODULE State_Diag_Mod
      REAL(f4),           POINTER :: AerMassSO4(:,:,:)
      LOGICAL                     :: Archive_AerMassSO4
 
-     REAL(f4),           POINTER :: AerMassAL2O3(:,:,:)
+     REAL(f4),           POINTER :: AerMassAL2O3(:,:,:) !(crb, 08/02/24)
      LOGICAL                     :: Archive_AerMassAL2O3
 
      REAL(f4),           POINTER :: AerMassSOAGX(:,:,:)
@@ -2044,7 +2044,7 @@ CONTAINS
     State_Diag%AerMassSO4                          => NULL()
     State_Diag%Archive_AerMassSO4                  = .FALSE.
     
-    State_Diag%AerMassAL2O3                        => NULL()
+    State_Diag%AerMassAL2O3                        => NULL() !(crb, 08/02/24)
     State_Diag%Archive_AerMassAL2O3                = .FALSE.
 
     State_Diag%AerMassSOAGX                        => NULL()
@@ -9511,6 +9511,7 @@ CONTAINS
        ! This will prevent potential errors caused by the quantities
        ! being requested as diagnostic output when the corresponding
        ! array has not been allocated.
+       ! Added alumina (crb, 08/02/24)
        !-------------------------------------------------------------------
        DO N = 1, 26
 
@@ -13322,7 +13323,7 @@ CONTAINS
                    RC       = RC                                            )
     IF ( RC /= GC_SUCCESS ) RETURN
 
-    CALL Finalize( diagId   = 'AerMassAL2O3',                                &
+    CALL Finalize( diagId   = 'AerMassAL2O3',                                & !(crb,08/02/24)
                    Ptr2Data = State_Diag%AerMassAL2O3,                       &
                    RC       = RC                                            )
     IF ( RC /= GC_SUCCESS ) RETURN
@@ -15608,7 +15609,7 @@ CONTAINS
        IF ( isUnits   ) Units = 'ug m-3'
        IF ( isRank    ) Rank  =  3
 
-    ELSE IF ( TRIM( Name_AllCaps ) == 'AERMASSAL203' ) THEN
+    ELSE IF ( TRIM( Name_AllCaps ) == 'AERMASSAL203' ) THEN !(crb, 08/02/24)
        IF ( isDesc    ) Desc  = 'Mass of alumina aerosol'
        IF ( isUnits   ) Units = 'ug m-3'
        IF ( isRank    ) Rank  =  3

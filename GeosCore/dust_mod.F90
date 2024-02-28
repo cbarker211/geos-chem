@@ -1318,7 +1318,8 @@ CONTAINS
     WTAREA    => State_Chm%WetAeroArea  ! Wet Aerosol Area   [cm2/cm3]
     DUST      => State_Chm%SoilDust     ! Dust aerosol Conc. [kg/m3]
 
-    ! Index for dust in ODAER and LUT arrays
+    ! Index for dust in ODAER and LUT arrays 
+    ! Increased by 1 to account for new alumina species (crb, 28/02/24)
     IDST      = 9
 
     ! Dust density
@@ -1415,7 +1416,8 @@ CONTAINS
           !SSA and ASYM copying seems a little redundant...
           !will keep this way for uniformity for now but
           !possibly could deal with SSA and ASYM in RT module
-          RTODAER(I,J,L,IWV,NAER+2+N-1) = ODMDUST(I,J,L,IWV,N)
+          !Index reduced by 1 so we don't add alumina to RRTMG (crb, 28/02/24)
+          RTODAER(I,J,L,IWV,NAER+2+N-1) = ODMDUST(I,J,L,IWV,N) 
           RTSSAER(I,J,L,IWV,NAER+2+N-1) = SSAA(IWV,N,IDST)
           RTASYMAER(I,J,L,IWV,NAER+2+N-1) = ASYMAA(IWV,N,IDST)
 #endif
@@ -1781,7 +1783,7 @@ CONTAINS
     OC_AREA   = TAREA(I,J,L,NDUST+3)
     SSA_AREA  = TAREA(I,J,L,NDUST+4)
     SSC_AREA  = TAREA(I,J,L,NDUST+5)
-    ALU_AREA  = TAREA(I,J,L,NDUST+6)
+    ALU_AREA  = TAREA(I,J,L,NDUST+6) !(crb, 28/02/24)
 
     ! tdf Now get aerosol effective radius from ERADIUS (cm)
     SULF_RAD  = ERADIUS(I,J,L,NDUST+1)
@@ -1789,7 +1791,7 @@ CONTAINS
     OC_RAD    = ERADIUS(I,J,L,NDUST+3)
     SSA_RAD   = ERADIUS(I,J,L,NDUST+4)
     SSC_RAD   = ERADIUS(I,J,L,NDUST+5)
-    ALU_RAD   = ERADIUS(I,J,L,NDUST+6)
+    ALU_RAD   = ERADIUS(I,J,L,NDUST+6) !(crb, 28/02/24)
 
     ! tdf Quotients [s/cm] used to weight surface area for H2SO4 uptake
     SULF_FAC = (SULF_RAD / DG + 4.e+0_fp/(V*GAMMA_H2SO4) )
@@ -1797,7 +1799,7 @@ CONTAINS
     OC_FAC   = (  OC_RAD / DG + 4.e+0_fp/(V*GAMMA_H2SO4) )
     SSA_FAC  = ( SSA_RAD / DG + 4.e+0_fp/(V*GAMMA_H2SO4) )
     SSC_FAC  = ( SSC_RAD / DG + 4.e+0_fp/(V*GAMMA_H2SO4) )
-    ALU_FAC  = ( ALU_RAD / DG + 4.e+0_fp/(V*GAMMA_H2SO4) )
+    ALU_FAC  = ( ALU_RAD / DG + 4.e+0_fp/(V*GAMMA_H2SO4) ) !(crb, 28/02/24)
 
     !tdf Surface areas and effective radii for sub-bins 1-4 of dust bin 1
     DO ISBIN = 1, 4
@@ -1852,7 +1854,7 @@ CONTAINS
     END DO
 
     ! tdf total aerosol surface area  [cm^2/cm^3]
-    TOTAL_AREA = SULF_AREA + BC_AREA + OC_AREA + SSA_AREA  + SSC_AREA + ALU_AREA + &
+    TOTAL_AREA = SULF_AREA + BC_AREA + OC_AREA + SSA_AREA  + SSC_AREA + ALU_AREA + & !(crb, 28/02/24)
                  AREA_d(1) + AREA_d(2) + AREA_d(3) + AREA_d(4)
 
     ! tdf total surface area weighted by gas-phase diffusion limitation [1/s]
@@ -1861,7 +1863,7 @@ CONTAINS
                     OC_AREA   / OC_FAC   + &
                     SSA_AREA  / SSA_FAC  + &
                     SSC_AREA  / SSC_FAC  + &
-                    ALU_AREA  / ALU_FAC  + &
+                    ALU_AREA  / ALU_FAC  + & !(crb, 28/02/24)
                     DF_AREA_d(1)         + &
                     DF_AREA_d(2)         + &
                     DF_AREA_d(3)         + &

@@ -571,10 +571,11 @@ CONTAINS
                 AERSP(L,K) = State_Chm%SOILDUST(I,J,L,K-3) * BoxHt * 1.d3
              ENDDO
 
-             !---------------------------------------
+             !----------------------------------------------------------
              ! Aerosols undergoing hydroscopic growth
-             ! NRHAER to NRHAER-1 to skip alumina (crb, 21/02/24)
-             !--------------------------------------
+             ! We don't incorporate alumina into cloud_j, so
+             ! set NRHAER to NRHAER-1 to skip alumina (crb, 21/02/24)
+             !---------------------------------------------------------
              IF ( State_Met%InChemGrid(I,J,L) ) THEN
 
                 ! For aerosols undergoing hygroscopic growth we need to pass the
@@ -614,7 +615,7 @@ CONTAINS
                 IF ( Input_Opt%LSULF .AND. State_Met%InTroposphere(I,J,L) ) THEN
 
                    ! Get indexes to optical property LUT
-                   S_rh0 = 3 + NDUST + (NRHAER-1)*(SO4_ind-1) + 1  ! SO4 index for RH=0 in NDXAER
+                   S_rh0 = 3 + NDUST + (NRHAER-1)*(SO4_ind-1) + 1  ! SO4 index for RH=0 in NDXAER (crb, 28/02/24)
                    S_rhx = S_rh0 + RH_ind - 1  ! Sulfate index for this RH
                    K_rh0 = NDXAER(L,S_rh0)     ! index for RH=0 in FJX_spec-aer.dat
                    K_rhx = NDXAER(L,S_rhx)     ! index for this RH in FJX_spec-aer.dat
@@ -650,7 +651,7 @@ CONTAINS
                    !----------------------------------------------------
 
                    ! Get indexes to optical property LUT
-                   S_rh0 = 3 + NDUST + (NRHAER-1)*(BC_ind-1) + 1  ! BC index for RH=0 in NDXAER
+                   S_rh0 = 3 + NDUST + (NRHAER-1)*(BC_ind-1) + 1  ! BC index for RH=0 in NDXAER (crb, 28/02/24)
                    S_rhx = S_rh0 + RH_ind - 1  ! BC index for this RH
                    K_rh0 = NDXAER(L,S_rh0)     ! index for RH=0 in FJX_spec-aer.dat
                    K_rhx = NDXAER(L,S_rhx)     ! index for this RH in FJX_spec-aer.dat
@@ -699,7 +700,7 @@ CONTAINS
                    !----------------------------------------------------
 
                    ! Get indexes to optical property LUT
-                   S_rh0 = 3 + NDUST + (NRHAER-1)*(OC_ind-1) + 1  ! OC index for RH=0 in NDXAER
+                   S_rh0 = 3 + NDUST + (NRHAER-1)*(OC_ind-1) + 1  ! OC index for RH=0 in NDXAER (crb, 28/02/24)
                    S_rhx = S_rh0 + RH_ind - 1  ! OC index for this RH
                    K_rh0 = NDXAER(L,S_rh0)     ! index for RH=0 in FJX_spec-aer.dat
                    K_rhx = NDXAER(L,S_rhx)     ! index for this RH in FJX_spec-aer.dat
@@ -737,7 +738,7 @@ CONTAINS
                    !----------------------------------------------------
 
                    ! Get indexes to optical property LUT
-                   S_rh0 = 3 + NDUST + (NRHAER-1)*(SALA_ind-1) + 1  ! SALA index for RH=0 in NDXAER
+                   S_rh0 = 3 + NDUST + (NRHAER-1)*(SALA_ind-1) + 1  ! SALA index for RH=0 in NDXAER (crb, 28/02/24)
                    S_rhx = S_rh0 + RH_ind - 1  ! SALA index for this RH
                    K_rh0 = NDXAER(L,S_rh0)     ! index for RH=0 in FJX_spec-aer.dat
                    K_rhx = NDXAER(L,S_rhx)     ! index for this RH in FJX_spec-aer.dat
@@ -765,7 +766,7 @@ CONTAINS
                    !----------------------------------------------------
 
                    ! Get indexes to optical property LUT
-                   S_rh0 = 3 + NDUST + (NRHAER-1)*(SALC_ind-1) + 1  ! SALC index for RH=0 in NDXAER
+                   S_rh0 = 3 + NDUST + (NRHAER-1)*(SALC_ind-1) + 1  ! SALC index for RH=0 in NDXAER (crb, 28/02/24)
                    S_rhx = S_rh0 + RH_ind - 1  ! SALC index for this RH
                    K_rh0 = NDXAER(L,S_rh0)     ! index for RH=0 in FJX_spec-aer.dat
                    K_rhx = NDXAER(L,S_rhx)     ! index for this RH in FJX_spec-aer.dat
@@ -800,9 +801,10 @@ CONTAINS
 
              ! Use sulfate concentration for stratospheric aerosols. Only set if the optical
              ! depth computed in GEOS-Chem is non-zero.
+             ! Increased indices by one to account for new alumina species (crb, 28/02/24)
 
              !  SSA/LBS/STS
-             IF ( State_Chm%Phot%ODAER(I,J,L,State_Chm%Phot%IWV1000,7) > 0._fp ) THEN
+             IF ( State_Chm%Phot%ODAER(I,J,L,State_Chm%Phot%IWV1000,7) > 0._fp ) THEN 
                 AERSP(L,36) = State_Chm%Species(id_SO4)%Conc(I,J,L) &
                      * MW_g / AVO * BoxHt * 1e+6_fp
              ENDIF
