@@ -811,7 +811,6 @@ CONTAINS
     REAL(fp)               :: sp_Lambda, sp_Num
 
     ! Parameters
-    REAL(fp), PARAMETER    :: BCDEN = 1000.e+0_fp ! density (kg/m3)
 
     ! Indexing
     INTEGER, PARAMETER     :: IBC  = 1
@@ -933,30 +932,17 @@ CONTAINS
           IF (RUNCALC) THEN
              ! Need to translate for BC radii
              IF ( State_Met%InChemGrid(I,J,L) ) THEN
-                RWET(IBC) = WERADIUS(I,J,L,2)*1.e-2_fp
+                RWET(IBC) = WERADIUS(I,J,L,9)*1.e-2_fp
                 RWET(IALU) = WERADIUS(I,J,L,13)*1.e-2_fp !Wet r in m. Index is N+NDUST (crb, 28/02/24)
-
-                !IF ( I == 1 .AND. J == 1 .AND. L == 1) THEN
-                !print 130, RWET(IBC), RWET(IALU)
-                !130 format ('InChemGrid. BCPI:',2x,e12.3,2x,'Alumina',e12.3)
-                !ENDIF
              ELSE
                 ! Use defaults, assume dry (!)
 #ifdef FASTJX
                 RWET(IBC) = RAA(State_Chm%Phot%IND999,29) * 1.0e-6_fp
 #else
                 RWET(IBC) = RAA(29) * 1.0e-6_fp
-                !Use dry radii in m (crb 27/02/24)
-                RWET(IALU)  = ERADIUS(I,J,L,13)*1.e-2_fp !Dry r in m. Index is N+NDUST (crb, 28/02/24)
-                !IF ( I == 1 .AND. J == 1 .AND. L == 1) THEN
-                !print 135, RWET(IBC), RWET(IALU)
-                !135 format ('NoChemGrid. BCPI:',2x,e12.3,2x,'Alumina',e12.3)
-                !ENDIF
+                RWET(IALU)= State_Chm%SpcData(id_AL2O3)%Info%Radius !Dry r in m from species_database.yml (crb, 28/02/24)
 #endif
              ENDIF
-
-             ! Taken from aerosol_mod (MSDENS(2))
-             RHO(IBC) = BCDEN
 
              !Use density from input files in kg/m3 following BCPI (crb, 27/02/24)
              RHO(IALU)  = State_Chm%SpcData(id_AL2O3)%Info%Density 
@@ -965,11 +951,12 @@ CONTAINS
              RHO(IDST3) = State_Chm%SpcData(id_DST3)%Info%Density 
              RHO(IDST4) = State_Chm%SpcData(id_DST4)%Info%Density 
              RHO(IBCPO) = State_Chm%SpcData(id_BCPO)%Info%Density 
+             RHO(IBC)   = State_Chm%SpcData(id_BCPI)%Info%Density !Updated to load from input file (crb, 28/02/24)
 
              !DST1 is split into MDUST1-4 in FJX_scat-aer.dat
-             !So using species_database.yml value
+             !Using species_database.yml value instead (crb 27/02/24)
              RWET(IDST1) = State_Chm%SpcData(id_DST1)%Info%Radius
-
+             
              !Use dry radius in m from FJX_scat-aer.dat following BCPI (crb 27/02/24)
              RWET(IBCPO) = RAA(29) * 1.0e-6_fp  ! Same value as BCPO above stratopause.
              RWET(IDST2) = RAA(19) * 1.0e-6_fp
@@ -1107,12 +1094,12 @@ CONTAINS
        Spc(id_BCPI)%Conc(I,J,L) = Spc(id_BCPI)%Conc(I,J,L) * CONST_V(IBC)
 
        !(crb 27/02/24) 
-       !Spc(id_AL2O3)%Conc(I,J,L) = Spc(id_AL2O3)%Conc(I,J,L) * CONST_V(IALU)
-       !Spc(id_BCPO)%Conc(I,J,L)  = Spc(id_BCPO)%Conc(I,J,L)  * CONST_V(IBCPO)
-       !Spc(id_DST1)%Conc(I,J,L)  = Spc(id_DST1)%Conc(I,J,L)  * CONST_V(IDST1)
-       !Spc(id_DST2)%Conc(I,J,L)  = Spc(id_DST2)%Conc(I,J,L)  * CONST_V(IDST2)
-       !Spc(id_DST3)%Conc(I,J,L)  = Spc(id_DST3)%Conc(I,J,L)  * CONST_V(IDST3)
-       !Spc(id_DST4)%Conc(I,J,L)  = Spc(id_DST4)%Conc(I,J,L)  * CONST_V(IDST4)
+       Spc(id_AL2O3)%Conc(I,J,L) = Spc(id_AL2O3)%Conc(I,J,L) * CONST_V(IALU)
+       Spc(id_BCPO)%Conc(I,J,L)  = Spc(id_BCPO)%Conc(I,J,L)  * CONST_V(IBCPO)
+       Spc(id_DST1)%Conc(I,J,L)  = Spc(id_DST1)%Conc(I,J,L)  * CONST_V(IDST1)
+       Spc(id_DST2)%Conc(I,J,L)  = Spc(id_DST2)%Conc(I,J,L)  * CONST_V(IDST2)
+       Spc(id_DST3)%Conc(I,J,L)  = Spc(id_DST3)%Conc(I,J,L)  * CONST_V(IDST3)
+       Spc(id_DST4)%Conc(I,J,L)  = Spc(id_DST4)%Conc(I,J,L)  * CONST_V(IDST4)
 
        DO L = State_Grid%NZ-1,1,-1
           IF ( State_Met%InTroposphere(I,J,L+1) ) CYCLE
@@ -1163,36 +1150,36 @@ CONTAINS
                                    * Spc(id_BCPI)%Conc(I,J,L+1) )
           
           !(crb 27/02/24) 
-          !Spc(id_AL2O3)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
-          !                     * VTS(L,IALU) / DELZ) &
-          !                     * ( Spc(id_AL2O3)%Conc(I,J,L) &
-          !                         + DTCHEM * VTS(L+1,IALU) / DELZ1 &
-          !                         * Spc(id_AL2O3)%Conc(I,J,L+1) )
-          !Spc(id_BCPO)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
-          !                     * VTS(L,IBCPO) / DELZ) &
-          !                     * ( Spc(id_BCPO)%Conc(I,J,L) &
-          !                         + DTCHEM * VTS(L+1,IBCPO) / DELZ1 &
-          !                         * Spc(id_BCPO)%Conc(I,J,L+1) )
-          !Spc(id_DST1)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
-          !                     * VTS(L,IDST1) / DELZ) &
-          !                     * ( Spc(id_DST1)%Conc(I,J,L) &
-          !                         + DTCHEM * VTS(L+1,IDST1) / DELZ1 &
-          !                         * Spc(id_DST1)%Conc(I,J,L+1) )
-          !Spc(id_DST2)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
-          !                     * VTS(L,IDST2) / DELZ) &
-          !                     * ( Spc(id_DST2)%Conc(I,J,L) &
-          !                         + DTCHEM * VTS(L+1,IDST2) / DELZ1 &
-          !                         * Spc(id_DST2)%Conc(I,J,L+1) )
-          !Spc(id_DST3)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
-          !                     * VTS(L,IDST2) / DELZ) &
-          !                     * ( Spc(id_DST3)%Conc(I,J,L) &
-          !                         + DTCHEM * VTS(L+1,IDST2) / DELZ1 &
-          !                         * Spc(id_DST3)%Conc(I,J,L+1) )
-          !Spc(id_DST4)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
-          !                     * VTS(L,IDST4) / DELZ) &
-          !                     * ( Spc(id_DST4)%Conc(I,J,L) &
-          !                         + DTCHEM * VTS(L+1,IDST4) / DELZ1 &
-          !                         * Spc(id_DST4)%Conc(I,J,L+1) )
+          Spc(id_AL2O3)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
+                               * VTS(L,IALU) / DELZ) &
+                               * ( Spc(id_AL2O3)%Conc(I,J,L) &
+                                   + DTCHEM * VTS(L+1,IALU) / DELZ1 &
+                                   * Spc(id_AL2O3)%Conc(I,J,L+1) )
+          Spc(id_BCPO)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
+                               * VTS(L,IBCPO) / DELZ) &
+                               * ( Spc(id_BCPO)%Conc(I,J,L) &
+                                   + DTCHEM * VTS(L+1,IBCPO) / DELZ1 &
+                                   * Spc(id_BCPO)%Conc(I,J,L+1) )
+          Spc(id_DST1)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
+                               * VTS(L,IDST1) / DELZ) &
+                               * ( Spc(id_DST1)%Conc(I,J,L) &
+                                   + DTCHEM * VTS(L+1,IDST1) / DELZ1 &
+                                   * Spc(id_DST1)%Conc(I,J,L+1) )
+          Spc(id_DST2)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
+                               * VTS(L,IDST2) / DELZ) &
+                               * ( Spc(id_DST2)%Conc(I,J,L) &
+                                   + DTCHEM * VTS(L+1,IDST2) / DELZ1 &
+                                   * Spc(id_DST2)%Conc(I,J,L+1) )
+          Spc(id_DST3)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
+                               * VTS(L,IDST2) / DELZ) &
+                               * ( Spc(id_DST3)%Conc(I,J,L) &
+                                   + DTCHEM * VTS(L+1,IDST2) / DELZ1 &
+                                   * Spc(id_DST3)%Conc(I,J,L+1) )
+          Spc(id_DST4)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
+                               * VTS(L,IDST4) / DELZ) &
+                               * ( Spc(id_DST4)%Conc(I,J,L) &
+                                   + DTCHEM * VTS(L+1,IDST4) / DELZ1 &
+                                   * Spc(id_DST4)%Conc(I,J,L+1) )
        ENDDO
 
        ! Now perform trapezoidal scheme for particulates
