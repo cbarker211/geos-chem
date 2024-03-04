@@ -15609,7 +15609,7 @@ CONTAINS
        IF ( isUnits   ) Units = 'ug m-3'
        IF ( isRank    ) Rank  =  3
 
-    ELSE IF ( TRIM( Name_AllCaps ) == 'AERMASSAL203' ) THEN !(crb, 08/02/24)
+    ELSE IF ( TRIM( Name_AllCaps ) == 'AERMASSAL2O3' ) THEN !(crb, 08/02/24)
        IF ( isDesc    ) Desc  = 'Mass of alumina aerosol'
        IF ( isUnits   ) Units = 'ug m-3'
        IF ( isRank    ) Rank  =  3
