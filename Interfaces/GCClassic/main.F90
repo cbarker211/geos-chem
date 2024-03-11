@@ -1658,6 +1658,28 @@ PROGRAM GEOS_Chem
              WRITE( 6, '(a)' ) REPEAT( '#', 79 )
           ENDIF
 
+          ! Allocate temperature difference arrays
+          If ( Input_Opt%RRTMG_FDH ) THEN
+             Allocate(DT_3D(State_Grid%NX,State_Grid%NY,State_Grid%NZ),Stat=RC)
+             IF ( RC /= 0 ) Call Error_Stop( 'Error allocating DT_3D', ThisLoc )
+             DT_3D(:,:,:) = 0
+
+             Allocate(HR_3D(State_Grid%NX,State_Grid%NY,State_Grid%NZ),Stat=RC)
+             IF ( RC /= 0 ) Call Error_Stop( 'Error allocating HR_3D', ThisLoc )
+             HR_3D(:,:,:) = 0
+
+             ! Read in dynamical heating rates if necessary
+             IF (Input_Opt%Read_Dyn_Heating) THEN
+                HR_3D(:,:,:) = State_Met%DynHeating(:,:,:)
+             ENDIF
+          ELSE
+             ! Safer
+             Allocate(DT_3D(0,0,0),Stat=RC)
+             IF ( RC /= 0 ) Call Error_Stop( 'Error allocating DT_3D', ThisLoc )
+             Allocate(HR_3D(0,0,0),Stat=RC)
+             IF ( RC /= 0 ) Call Error_Stop( 'Error allocating HR_3D', ThisLoc )
+          ENDIF
+
           State_Chm%RRTMG_iSeed = State_Chm%RRTMG_iSeed + 15
 
           !------------------------------------------------------------------
@@ -1696,10 +1718,10 @@ PROGRAM GEOS_Chem
           CALL Set_SpecMask( State_Diag%RadOutInd(N), State_Chm )
 
           ! Dummy values (FDH not available in GC-Classic)
-          Allocate(DT_3D(0,0,0),Stat=RC)
-          IF ( RC /= 0 ) Call Error_Stop( 'Error allocating DT_3D', ThisLoc )
-          Allocate(HR_3D(0,0,0),Stat=RC)
-          IF ( RC /= 0 ) Call Error_Stop( 'Error allocating HR_3D', ThisLoc )
+          !Allocate(DT_3D(0,0,0),Stat=RC)
+          !IF ( RC /= 0 ) Call Error_Stop( 'Error allocating DT_3D', ThisLoc )
+          !Allocate(HR_3D(0,0,0),Stat=RC)
+          !IF ( RC /= 0 ) Call Error_Stop( 'Error allocating HR_3D', ThisLoc )
 
           ! Compute radiative transfer for the given output
           CALL Do_RRTMG_Rad_Transfer( ThisDay    = Day,                    &
@@ -1763,8 +1785,22 @@ PROGRAM GEOS_Chem
              CALL Debug_Msg( '### MAIN: a DO_RRTMG_RAD_TRANSFER' )
           ENDIF
 
-          If (Allocated(DT_3D)) Deallocate(DT_3D)
-          If (Allocated(HR_3D)) Deallocate(HR_3D)
+          ! Store temperature change and heating rate from RRTMG in diagnostics
+          If (Input_Opt%RRTMG_FDH) Then
+             IF (State_Diag%Archive_DynHeating) THEN
+                State_Diag%DynHeating(:,:,:) = HR_3D(:,:,:)
+             ENDIF
+             ! NB: DT_3D is the temperature adjustment either after equilibration (pure FDH)
+             ! or at the start of the NEXT radiation time step (SEFDH)
+             IF (State_Diag%Archive_DTRad     ) THEN
+                State_Diag%DTRad(:,:,:)      = DT_3D(:,:,:)
+             ENDIF
+             RC = 0
+             If (Allocated(DT_3D)) Deallocate(DT_3D, STAT=RC)
+             IF ( RC /= 0 ) Call Error_Stop( 'Error deallocating DT_3D', ThisLoc )
+             If (Allocated(HR_3D)) Deallocate(HR_3D, STAT=RC)
+             IF ( RC /= 0 ) Call Error_Stop( 'Error deallocating HR_3D', ThisLoc )
+          End If
 
           IF ( Input_Opt%useTimers ) THEN
              CALL Timer_End( "RRTMG", RC )
