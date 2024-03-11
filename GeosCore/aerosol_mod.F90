@@ -1875,12 +1875,12 @@ CONTAINS
     ENDDO !End loop over NWVS
 
     ! Print aerosol radii
-    print 145
-    145 format ('After Wavelength Loop')
-    print 150, State_Chm%AeroRadi(1,1,1,1),State_Chm%AeroRadi(1,1,1,2),State_Chm%AeroRadi(1,1,1,3),State_Chm%AeroRadi(1,1,1,4),State_Chm%AeroRadi(1,1,1,5),State_Chm%AeroRadi(1,1,1,6),State_Chm%AeroRadi(1,1,1,7)
-    150 format ('Dust Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
-    print 155, State_Chm%AeroRadi(1,1,1,8),State_Chm%AeroRadi(1,1,1,9),State_Chm%AeroRadi(1,1,1,10),State_Chm%AeroRadi(1,1,1,11),State_Chm%AeroRadi(1,1,1,12),State_Chm%AeroRadi(1,1,1,13),State_Chm%AeroRadi(1,1,1,14),State_Chm%AeroRadi(1,1,1,15)
-    155 format ('Else Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
+    !print 145
+    !145 format ('After Wavelength Loop')
+    !print 150, State_Chm%AeroRadi(1,1,1,1),State_Chm%AeroRadi(1,1,1,2),State_Chm%AeroRadi(1,1,1,3),State_Chm%AeroRadi(1,1,1,4),State_Chm%AeroRadi(1,1,1,5),State_Chm%AeroRadi(1,1,1,6),State_Chm%AeroRadi(1,1,1,7)
+    !150 format ('Dust Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
+    !print 155, State_Chm%AeroRadi(1,1,1,8),State_Chm%AeroRadi(1,1,1,9),State_Chm%AeroRadi(1,1,1,10),State_Chm%AeroRadi(1,1,1,11),State_Chm%AeroRadi(1,1,1,12),State_Chm%AeroRadi(1,1,1,13),State_Chm%AeroRadi(1,1,1,14),State_Chm%AeroRadi(1,1,1,15)
+    !155 format ('Else Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
 
     !==============================================================
     ! Account for stratospheric aerosols (SDE 04/17/13)

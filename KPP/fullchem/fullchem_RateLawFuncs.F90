@@ -1251,12 +1251,12 @@ CONTAINS
     ENDIF
     !
     gamma = 0.02_dp
-    k_before = k
+    !k_before = k
     k = k + Ars_L1K( H%xArea(ALU), H%xRadi(ALU), gamma, srMw )
-    IF (k > k_before) THEN
-       print 300, k_before, k
-    ENDIF
-    300 format('k has increased from',e12.3, 1x, 'to',1x, e12.3)
+    !IF (k > k_before) THEN
+    !   print 300, k_before, k
+    !ENDIF
+    !300 format('k has increased from',e12.3, 1x, 'to',1x, e12.3)
     !
     ! Assume ClNO3 is limiting, so recompute reaction rate accordingly
     k = kIIR1Ltd( C(ind_ClNO3), C(ind_HCl), k )
