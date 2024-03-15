@@ -1658,7 +1658,7 @@ PROGRAM GEOS_Chem
              WRITE( 6, '(a)' ) REPEAT( '#', 79 )
           ENDIF
 
-          ! Allocate temperature difference arrays
+          ! Allocate temperature difference arrays (crb, 14/02/24)
           If ( Input_Opt%RRTMG_FDH ) THEN
              Allocate(DT_3D(State_Grid%NX,State_Grid%NY,State_Grid%NZ),Stat=RC)
              IF ( RC /= 0 ) Call Error_Stop( 'Error allocating DT_3D', ThisLoc )
@@ -1670,6 +1670,8 @@ PROGRAM GEOS_Chem
 
              ! Read in dynamical heating rates if necessary
              IF (Input_Opt%Read_Dyn_Heating) THEN
+                print 151, State_Met%DynHeating(1,1,1),State_Met%DynHeating(30,1,1)
+                151 format ('DynHeating Surf:',2x,e12.3,2x,'DynHeating Mid',2x,e12.3)
                 HR_3D(:,:,:) = State_Met%DynHeating(:,:,:)
              ENDIF
           ELSE
@@ -1718,6 +1720,7 @@ PROGRAM GEOS_Chem
           CALL Set_SpecMask( State_Diag%RadOutInd(N), State_Chm )
 
           ! Dummy values (FDH not available in GC-Classic)
+          ! Commented out to allow FDH in GCClassic (crb, 14/02/24)
           !Allocate(DT_3D(0,0,0),Stat=RC)
           !IF ( RC /= 0 ) Call Error_Stop( 'Error allocating DT_3D', ThisLoc )
           !Allocate(HR_3D(0,0,0),Stat=RC)
@@ -1785,7 +1788,7 @@ PROGRAM GEOS_Chem
              CALL Debug_Msg( '### MAIN: a DO_RRTMG_RAD_TRANSFER' )
           ENDIF
 
-          ! Store temperature change and heating rate from RRTMG in diagnostics
+          ! Store temperature change and heating rate from RRTMG in diagnostics (crb, 14/02/24)
           If (Input_Opt%RRTMG_FDH) Then
              IF (State_Diag%Archive_DynHeating) THEN
                 State_Diag%DynHeating(:,:,:) = HR_3D(:,:,:)

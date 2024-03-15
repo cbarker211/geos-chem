@@ -2884,6 +2884,7 @@ CONTAINS
        ENDIF
     ENDIF
 
+!Commented out to reenable FDH in GCClassic (crb, 15/03/24)
 !#ifndef MODEL_GCHPCTM
 !    If (Input_Opt%RRTMG_FDH) Then
 !       errMsg = 'Fixed dynamical heating in RRTMG is currently only available in GCHP'
