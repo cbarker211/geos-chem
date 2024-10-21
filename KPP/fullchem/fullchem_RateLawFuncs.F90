@@ -1220,7 +1220,7 @@ CONTAINS
     ! Computes the rate [1/s] of ClNO3(g) + HCl(l,s).
     !
     TYPE(HetState), INTENT(IN) :: H              ! Hetchem State
-    REAL(dp)                   :: k, k_before    ! Rxn rate [1/s]
+    REAL(dp)                   :: k              ! Rxn rate [1/s]
     !
     REAL(dp) :: branchIce, dum1,     dum2
     REAL(dp) :: gamma,     gammaIce, srMw
@@ -1252,8 +1252,8 @@ CONTAINS
        k = k + CloudHet( H, srMw, 0.0_dp, gammaIce, 0.0_dp, branchIce )
     ENDIF
     !
-    gamma = 0.02_dp
-    k = k + Ars_L1K( H%xArea(ALU), H%xRadi(ALU), gamma, srMw )
+    !gamma = 0.02_dp
+    !k = k + Ars_L1K( H%xArea(ALU), H%xRadi(ALU), gamma, srMw )
     !
     ! Assume ClNO3 is limiting, so recompute reaction rate accordingly
     k = kIIR1Ltd( C(ind_ClNO3), C(ind_HCl), k )
