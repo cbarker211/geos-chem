@@ -71,6 +71,7 @@ MODULE UCX_MOD
   PRIVATE :: MOLEC_SPEED
   PRIVATE :: NOXCOEFF_INIT
   PRIVATE :: GET_JJNOX
+  PRIVATE :: CALC_SCALEVOL
 !
 ! !REVISION HISTORY:
 !  26 Mar 2013 - S. D. Eastham - Initial version
@@ -166,8 +167,8 @@ MODULE UCX_MOD
   INTEGER ::             id_HCl,      id_HNO2,   id_HNO3,  id_N
   INTEGER :: id_HNO4,    id_HOBr,     id_HOCl,   id_N2O,   id_N2O5
   INTEGER :: id_NIT,     id_NO,       id_NO2,    id_NO3,   id_O3
-  INTEGER :: id_OClO,    id_PAN,      id_SO2,   id_SO4
-  INTEGER :: id_AL2O3,   id_BCPO !(crb, 27/02/24)
+  INTEGER :: id_OClO,    id_PAN,      id_SO2,    id_SO4,   id_DST4 !(crb, 30/10/24)
+  INTEGER :: id_AL2O3,   id_BCPO,     id_DST1,   id_DST2,  id_DST3 !(crb, 30/10/24)
 
 CONTAINS
 !
@@ -1682,6 +1683,8 @@ CONTAINS
     REAL(fp)                :: HNO3GASFRAC, HClGASFRAC, HOClGASFRAC
     REAL(fp)                :: HBrGASFRAC, HOBrGASFRAC
     REAL(fp)                :: VOL_NAT, VOL_ICE, VOL_SLA, VOL_TOT
+    REAL(fp), DIMENSION(6)  :: MASS, VOL, VOL_REMOVED, CONC_REMOVED, AERDENS
+    REAL(fp)                :: VOL_FRAC, VOL_ADDED, VOL_INC, SCALEVOL
     REAL(fp)                :: RAD_AER_BOX,RHO_AER_BOX
     REAL(fp)                :: KG_AER_BOX,NDENS_AER_BOX,SAD_AER_BOX
     REAL(fp)                :: KG_NAT, KG_ICE, KG_NO3
@@ -1703,7 +1706,7 @@ CONTAINS
     INTEGER                 :: STATE_LOCAL
 
     ! Loop variables
-    INTEGER                 :: I, J, L, K
+    INTEGER                 :: I, J, L, K, NAER
 
     ! Local variables for quantities from Input_Opt
     LOGICAL                 :: LHOMNUCNAT
@@ -1760,7 +1763,10 @@ CONTAINS
     !$OMP PRIVATE( INVAIR,       PSATHNO3,           PSATH2O       ) &
     !$OMP PRIVATE( VOL_NAT,      VOL_ICE                           ) &
     !$OMP PRIVATE( VOL_SLA,      PSATHNO3_SUPERCOOL, TCENTER       ) &
-    !$OMP PRIVATE( TINV,         IS_VALID                          ) &
+    !$OMP PRIVATE( VOL,          MASS,               VOL_REMOVED   ) &
+    !$OMP PRIVATE( SCALEVOL,     CONC_REMOVED,       VOL_INC       ) &  
+    !$OMP PRIVATE( VOL_FRAC,     VOL_ADDED,          AERDENS       ) &
+    !$OMP PRIVATE( TINV,         IS_VALID,           NAER          ) &
     !$OMP PRIVATE( RAD_AER_BOX,  RHO_AER_BOX                       ) &
     !$OMP PRIVATE( KG_AER_BOX,   NDENS_AER_BOX,      SAD_AER_BOX   ) &
     !$OMP PRIVATE( KG_NAT,       KG_ICE,             KG_NO3        ) &
@@ -1880,6 +1886,14 @@ CONTAINS
        VOL_ICE            = 0.0_fp
        VOL_NAT            = 0.0_fp
        VOL_SLA            = 0.0_fp
+       VOL                = 0.0_fp
+       VOL_FRAC           = 0.0_fp
+       VOL_ADDED          = 0.0_fp
+       VOL_INC            = 0.0_fp
+       MASS               = 0.0_fp
+       VOL_REMOVED        = 0.0_fp
+       CONC_REMOVED       = 0.0_fp
+       AERDENS            = 0.0_fp
        VOL_TOT            = 0.0_fp
        W_HBr              = 0.0_fp
        W_HCl              = 0.0_fp
@@ -2102,6 +2116,14 @@ CONTAINS
        NDENS_AER_BOX = 0e+0_fp
        SAD_AER_BOX   = 0e+0_fp
        VOL_SLA       = 0e+0_fp
+       VOL           = 0e+0_fp
+       VOL_FRAC      = 0e+0_fp
+       VOL_ADDED     = 0e+0_fp
+       VOL_INC       = 0e+0_fp
+       MASS          = 0e+0_fp
+       VOL_REMOVED   = 0e+0_fp
+       CONC_REMOVED  = 0e+0_fp
+       AERDENS       = 0e+0_fp
        W_H2O         = 0e+0_fp
        W_H2SO4       = 1e+0_fp
 
@@ -2162,6 +2184,89 @@ CONTAINS
           HBr_BOX_L  = HBrSUM -HBr_BOX_G
           HOBr_BOX_G = HOBrSUM*HOBrGASFRAC
           HOBr_BOX_L = HOBrSUM-HOBr_BOX_G
+
+          !========================================
+          ! Add black carbon and alumina to sulfate
+          !========================================
+
+          ! Check this box has enough sulfate
+          IF (SLA_VA*(VOL_SLA**0.751e+0_fp) > 1e-9_fp) THEN
+          
+             !--------------------------------------------------
+             ! Work out the volume of aerosol to add to sulfate 
+             !--------------------------------------------------
+
+             ! Define the densities
+             AERDENS(1) = State_Chm%SpcData(id_BCPI)%Info%Density
+             AERDENS(2) = State_Chm%SpcData(id_BCPO)%Info%Density
+             AERDENS(3) = State_Chm%SpcData(id_AL2O3)%Info%Density
+             AERDENS(4) = State_Chm%SpcData(id_DST2)%Info%Density
+             AERDENS(5) = State_Chm%SpcData(id_DST3)%Info%Density
+             AERDENS(6) = State_Chm%SpcData(id_DST4)%Info%Density
+             AERDENS(7) = State_Chm%SpcData(id_SO4)%Info%Density
+             
+             Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_BCPI)%Conc(I,J,L) * AERDENS(7) / AERDENS(1))
+             Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_BCPI)%Conc(I,J,L) * AERDENS(7) / AERDENS(1))
+             Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_BCPI)%Conc(I,J,L) * AERDENS(7) / AERDENS(1))
+             Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_BCPI)%Conc(I,J,L) * AERDENS(7) / AERDENS(1))
+             Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_BCPI)%Conc(I,J,L) * AERDENS(7) / AERDENS(1))
+             Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_BCPI)%Conc(I,J,L) * AERDENS(7) / AERDENS(1))
+             Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_BCPI)%Conc(I,J,L) * AERDENS(7) / AERDENS(1))
+
+             MASS(1) = Spc(id_BCPI)%Conc(I,J,L)  / State_Met%AIRVOL(I,J,L) ! kg/m3
+             MASS(2) = Spc(id_BCPO)%Conc(I,J,L)  / State_Met%AIRVOL(I,J,L) ! kg/m3
+             MASS(3) = Spc(id_AL2O3)%Conc(I,J,L) / State_Met%AIRVOL(I,J,L) ! kg/m3
+             MASS(4) = Spc(id_DST2)%Conc(I,J,L)  / State_Met%AIRVOL(I,J,L) ! kg/m3
+             MASS(5) = Spc(id_DST3)%Conc(I,J,L)  / State_Met%AIRVOL(I,J,L) ! kg/m3
+             MASS(6) = Spc(id_DST4)%Conc(I,J,L)  / State_Met%AIRVOL(I,J,L) ! kg/m3
+             
+             ! Avoid division by zero.
+             DO NAER = 1, 6
+                MASS(NAER) = MAX( MASS(NAER), 1e-35_fp )
+             ENDDO
+             
+             ! Apply hygroscopic growth to BCPI and ALU
+             CALL CALC_SCALEVOL(State_Met,State_Chm,I,J,L,2,SCALEVOL)
+             VOL(1) = MASS(1) * SCALEVOL / AERDENS(1)
+             CALL CALC_SCALEVOL(State_Met,State_Chm,I,J,L,6,SCALEVOL)
+             VOL(3) = MASS(3) * SCALEVOL / AERDENS(3)
+              
+             ! Now work out the volume of the aerosol
+             VOL(2) = MASS(2) / AERDENS(2)
+             VOL(4) = MASS(4) / AERDENS(4)
+             VOL(5) = MASS(5) / AERDENS(5)
+             VOL(6) = MASS(6) / AERDENS(6)
+             
+             !------------------------------------
+             ! Add the aerosol volume to sulfate
+             !------------------------------------
+             
+             ! Only add as much BC as there is sulfate
+             VOL_FRAC = 1.0_fp
+             
+             VOL_ADDED = VOL_FRAC * SUM(VOL)
+             
+             !IF ((VOL_ADDED / VOL_SLA * 100) > 1) THEN
+             !   print 155, VOL_SLA, (VOL_SLA + VOL_ADDED)
+             !   155 format ('Before: 'e12.3,'After: 'e12.3)
+             !ENDIF
+             
+             VOL_SLA = VOL_SLA + VOL_ADDED
+
+             !---------------------------------------------------
+             ! Remove the aerosol mass that was added to sulfate
+             !---------------------------------------------------
+
+
+             Spc(id_BCPI)%Conc(I,J,L)  = 0.0_fp
+             Spc(id_BCPO)%Conc(I,J,L)  = 0.0_fp
+             Spc(id_AL2O3)%Conc(I,J,L) = 0.0_fp
+             Spc(id_DST1)%Conc(I,J,L)  = 0.0_fp
+             Spc(id_DST2)%Conc(I,J,L)  = 0.0_fp
+             Spc(id_DST3)%Conc(I,J,L)  = 0.0_fp
+             Spc(id_DST4)%Conc(I,J,L)  = 0.0_fp
+                  
+          ENDIF
 
           ! Calculate SLA parameters (Grainger 1995)
           SAD_AER_BOX = SLA_VA*(VOL_SLA**0.751e+0_fp)        ! cm2/cm3
@@ -2275,6 +2380,116 @@ CONTAINS
     NULLIFY( Spc, STATE_PSC, KHETI_SLA )
 
   END SUBROUTINE CALC_STRAT_AER
+!EOC
+!------------------------------------------------------------------------------
+!            UCL Atmospheric Composition and Air Quality Research Group       !
+!------------------------------------------------------------------------------
+!BOP
+!
+! !IROUTINE: calc_scalevol
+!
+! !DESCRIPTION: Subroutine CALC\_SCALEVOL calculates the hygroscopic growth 
+!               of aerosols so we can work out the volume.
+!\\
+!\\
+! !INTERFACE:
+!
+  SUBROUTINE CALC_SCALEVOL (State_Met,State_Chm,I,J,L,IND,SCALEVOL)
+!
+! !USES:
+!
+    USE State_Met_Mod,      ONLY : MetState
+    USE State_Chm_Mod,      ONLY : ChmState
+    USE PhysConstants,      ONLY : CONSVAP
+    USE CMN_SIZE_Mod,       ONLY : NRH
+!
+! !INPUT PARAMETERS:
+!
+    TYPE(MetState), INTENT(IN) :: State_Met   ! Meteorology State object
+    TYPE(ChmState), INTENT(IN) :: State_Chm   ! Chemistry State object
+    INTEGER,  INTENT(IN)       :: I, J, L     ! Grid indices
+    INTEGER,  INTENT(IN)       :: IND         ! Index of aerosol in REAA
+!
+! !OUTPUT VARIABLES:
+!
+    REAL(fp), INTENT(OUT) :: SCALEVOL    ! Hygroscopic growth ratio
+!
+! !REVISION HISTORY:
+!  28 Oct 2024 - C. R. Barker - Initial version
+!  See https://github.com/geoschem/geos-chem for complete history
+!EOP
+!------------------------------------------------------------------------------
+!BOC
+
+! !LOCAL VARIABLES:
+
+    ! Used to interpolate between sizes
+    REAL(fp)            :: FRAC
+    REAL(fp)            :: RW(NRH)
+    REAL(fp)            :: REFF
+    REAL(fp)            :: TK,CONSEXP,VPRESH2O,RELHUM
+    REAL(fp),  SAVE     :: RH(NRH)   = (/0e+0_fp,0.5e+0_fp, &
+                                         0.7e+0_fp,0.8e+0_fp,0.9e+0_fp/)
+    INTEGER             :: R, IRH
+    
+    ! Pointers
+    REAL*8,   POINTER        :: REAA(:,:)
+
+    !=================================================================
+    ! CALC_SCALEVOL begins here!
+    !=================================================================
+
+    ! Set pointers
+    REAA   => State_Chm%Phot%REAA
+    
+    !-----------------------------------------------
+    ! Calculate effective radius and volume for BCPI
+    !-----------------------------------------------
+                
+    ! Loop over relative humidity bins
+    DO R = 1, NRH
+       ! Wet radius in aerosol LUT files
+       RW(R) = REAA(R,IND)
+    ENDDO
+    
+    ! Work out the relative humidity
+    RELHUM   = State_Met%AVGW(I,J,L) * State_Met%AIRNUMDEN(I,J,L)
+    TK       = State_Met%T(I,J,L)
+    CONSEXP  = 17.2693882e+0_fp * (TK - 273.16e+0_fp) / &
+                (TK - 35.86e+0_fp)
+    VPRESH2O = CONSVAP * EXP(CONSEXP) / TK
+    RELHUM   = RELHUM / VPRESH2O 
+
+    ! Work out what humidity bin we are in
+    IF (      RELHUM <= RH(2) ) THEN
+       IRH = 1
+    ELSE IF ( RELHUM <= RH(3) ) THEN
+       IRH = 2
+    ELSE IF ( RELHUM <= RH(4) ) THEN
+       IRH = 3
+    ELSE IF ( RELHUM <= RH(5) ) THEN
+       IRH = 4
+    ELSE
+       IRH = 5
+    ENDIF
+     ! Caluclate the effective radius
+    IF ( IRH == NRH ) THEN
+       REFF     = RW(NRH)
+    ELSE
+       ! Interpolate between different RH
+       FRAC = (RELHUM-RH(IRH)) / (RH(IRH+1)-RH(IRH))
+       IF ( FRAC > 1.0d0 ) FRAC = 1.0d0
+       REFF    = FRAC*RW(IRH+1)  + (1.d0-FRAC)*RW(IRH)
+    ENDIF
+    
+    !  Wet Volume = AERSL * SCALER**3 / MSDENS
+    SCALEVOL = (REFF / RW(1)) ** 3
+
+    ! Track increases in density
+    ! Free pointers
+    NULLIFY( REAA )
+
+  END SUBROUTINE CALC_SCALEVOL
 !EOC
 !------------------------------------------------------------------------------
 !               MIT Laboratory for Aviation and the Environment               !
@@ -3149,7 +3364,7 @@ CONTAINS
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: cacl_sla_gamma
+! !IROUTINE: calc_sla_gamma
 !
 ! !DESCRIPTION: Subroutine CALC\_SLA\_GAMMA calculates 11 different sticking
 !  coefficients on the surface of local stratospheric liquid aerosols,
@@ -4332,6 +4547,10 @@ CONTAINS
     id_SO4   = Ind_('SO4'       )
     id_AL2O3 = Ind_('AL2O3'     ) !(crb 27/02/24)
     id_BCPO  = Ind_('BCPO'      ) !(crb 27/02/24) 
+    id_DST1  = Ind_('DST1'      ) !(crb 30/10/24) 
+    id_DST2  = Ind_('DST2'      ) !(crb 30/10/24)
+    id_DST3  = Ind_('DST3'      ) !(crb 30/10/24)
+    id_DST4  = Ind_('DST4'      ) !(crb 30/10/24)
 
     ! Print info
     IF ( Input_Opt%Verbose ) THEN

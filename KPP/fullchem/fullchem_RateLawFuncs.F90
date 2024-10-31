@@ -1234,10 +1234,8 @@ CONTAINS
        gamma = 0.1e-4_dp
        k = k + Ars_L1K( H%xArea(SUL), H%xRadi(SUL), gamma, srMw )
        !
-       ! Rate of ClNO3 + HCl on stratospheric liquid aerosol, black carbon, and alumina
+       ! Rate of ClNO3 + HCl on stratospheric liquid aerosol
        k = k + H%xArea(SLA) * H%KHETI_SLA(ClNO3_plus_HCl)
-       k = k + H%xArea(BKC) * H%KHETI_SLA(ClNO3_plus_HCl)
-       k = k + H%xArea(ALU) * H%KHETI_SLA(ClNO3_plus_HCl)
        !
        ! Rate of ClNO3 + HCl on irregular ice cloud
        gamma = 0.3_dp                               ! Rxn prob, ice [1]
@@ -1252,8 +1250,8 @@ CONTAINS
        k = k + CloudHet( H, srMw, 0.0_dp, gammaIce, 0.0_dp, branchIce )
     ENDIF
     !
-    !gamma = 0.02_dp
-    !k = k + Ars_L1K( H%xArea(ALU), H%xRadi(ALU), gamma, srMw )
+    gamma = 0.02_dp
+    k = k + Ars_L1K( H%xArea(ALU), H%xRadi(ALU), gamma, srMw )
     !
     ! Assume ClNO3 is limiting, so recompute reaction rate accordingly
     k = kIIR1Ltd( C(ind_ClNO3), C(ind_HCl), k )
