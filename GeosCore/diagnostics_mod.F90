@@ -2044,6 +2044,23 @@ CONTAINS
                kgm3_to_ugm3
        ENDIF
 
+       !--------------------------------------
+       ! AerMassSLA [ug/m3]
+       ! crb 07/11/24
+       !--------------------------------------
+       IF ( State_Diag%Archive_AerMassSLA ) THEN
+          State_Diag%AerMassSLA(I,J,L) = SLA(I,J,L) * &
+               kgm3_to_ugm3
+       ENDIF
+
+       !--------------------------------------
+       ! AerMassSPA [ug/m3]
+       ! crb 07/11/24
+       !--------------------------------------
+       IF ( State_Diag%Archive_AerMassSPA ) THEN
+          State_Diag%AerMassSPA(I,J,L) = SPA(I,J,L) * &
+               kgm3_to_ugm3
+       ENDIF
 
        !--------------------------------------
        ! AerMassSOAGX [ug/m3]

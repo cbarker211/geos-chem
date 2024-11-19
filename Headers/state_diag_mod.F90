@@ -631,6 +631,12 @@ MODULE State_Diag_Mod
      REAL(f4),           POINTER :: AerMassAL2O3(:,:,:) !(crb, 08/02/24)
      LOGICAL                     :: Archive_AerMassAL2O3
 
+     REAL(f4),           POINTER :: AerMassSLA(:,:,:) !(crb, 08/02/24)
+     LOGICAL                     :: Archive_AerMassSLA
+
+     REAL(f4),           POINTER :: AerMassSPA(:,:,:) !(crb, 08/02/24)
+     LOGICAL                     :: Archive_AerMassSPA
+
      REAL(f4),           POINTER :: AerMassSOAGX(:,:,:)
      LOGICAL                     :: Archive_AerMassSOAGX
 
@@ -2046,6 +2052,12 @@ CONTAINS
     
     State_Diag%AerMassAL2O3                        => NULL() !(crb, 08/02/24)
     State_Diag%Archive_AerMassAL2O3                = .FALSE.
+
+    State_Diag%AerMassSLA                          => NULL() !(crb, 07/11/24)
+    State_Diag%Archive_AerMassSLA                  = .FALSE.
+    
+    State_Diag%AerMassSPA                          => NULL() !(crb, 07/11/24)
+    State_Diag%Archive_AerMassSPA                  = .FALSE.
 
     State_Diag%AerMassSOAGX                        => NULL()
     State_Diag%Archive_AerMassSOAGX                = .FALSE.
@@ -9132,7 +9144,7 @@ CONTAINS
 
        !-------------------------------------------------------------------
        ! Aerosol mass of AL2O3 [ug/m3]
-       ! (crb, 08/02/23)
+       ! (crb, 08/02/24)
        !-------------------------------------------------------------------
        diagID = 'AerMassAL2O3'
        CALL Init_and_Register(                                               &
@@ -9144,6 +9156,52 @@ CONTAINS
             TaggedDiagList = TaggedDiag_List,                                &
             Ptr2Data       = State_Diag%AerMassAL2O3,                        &
             archiveData    = State_Diag%Archive_AerMassAL2O3,                &
+            diagId         = diagId,                                         &
+            RC             = RC                                             )
+            
+       IF ( RC /= GC_SUCCESS ) THEN
+          errMsg = TRIM( errMsg_ir ) // TRIM( diagId )
+          CALL GC_Error( errMsg, RC, thisLoc )
+          RETURN
+       ENDIF
+
+       !-------------------------------------------------------------------
+       ! Aerosol mass of SLA [ug/m3]
+       ! (crb, 07/11/24)
+       !-------------------------------------------------------------------
+       diagID = 'AerMassSLA'
+       CALL Init_and_Register(                                               &
+            Input_Opt      = Input_Opt,                                      &
+            State_Chm      = State_Chm,                                      &
+            State_Diag     = State_Diag,                                     &
+            State_Grid     = State_Grid,                                     &
+            DiagList       = Diag_List,                                      &
+            TaggedDiagList = TaggedDiag_List,                                &
+            Ptr2Data       = State_Diag%AerMassSLA,                          &
+            archiveData    = State_Diag%Archive_AerMassSLA,                  &
+            diagId         = diagId,                                         &
+            RC             = RC                                             )
+            
+       IF ( RC /= GC_SUCCESS ) THEN
+          errMsg = TRIM( errMsg_ir ) // TRIM( diagId )
+          CALL GC_Error( errMsg, RC, thisLoc )
+          RETURN
+       ENDIF
+
+       !-------------------------------------------------------------------
+       ! Aerosol mass of SPA [ug/m3]
+       ! (crb, 07/11/24)
+       !-------------------------------------------------------------------
+       diagID = 'AerMassSPA'
+       CALL Init_and_Register(                                               &
+            Input_Opt      = Input_Opt,                                      &
+            State_Chm      = State_Chm,                                      &
+            State_Diag     = State_Diag,                                     &
+            State_Grid     = State_Grid,                                     &
+            DiagList       = Diag_List,                                      &
+            TaggedDiagList = TaggedDiag_List,                                &
+            Ptr2Data       = State_Diag%AerMassSPA,                          &
+            archiveData    = State_Diag%Archive_AerMassSPA,                  &
             diagId         = diagId,                                         &
             RC             = RC                                             )
             
@@ -9513,7 +9571,7 @@ CONTAINS
        ! array has not been allocated.
        ! Added alumina (crb, 08/02/24)
        !-------------------------------------------------------------------
-       DO N = 1, 26
+       DO N = 1, 28
 
           ! Select the diagnostic ID
           SELECT CASE( N )
@@ -9572,6 +9630,10 @@ CONTAINS
                 diagID = 'ProdSO2andHCHOfromHMSinCloud'
              CASE( 26 ) ! (crb, 08/02/24)
                 diagID = 'AerMassAL2O3'
+             CASE( 27 ) ! (crb, 08/02/24)
+                diagID = 'AerMassSLA'
+             CASE( 28 ) ! (crb, 08/02/24)
+                diagID = 'AerMassSPA'
           END SELECT
 
           ! Exit if any of the above are in the diagnostic list
@@ -11955,6 +12017,8 @@ CONTAINS
                                    State_Diag%Archive_AerMassSO4        .or. &
                                    State_Diag%Archive_AerMassHMS        .or. &  !(jmm, 06/29/18)
                                    State_Diag%Archive_AerMassAL2O3      .or. &  !(crb, 08/02/24)
+                                   State_Diag%Archive_AerMassSLA        .or. &  !(crb, 07/11/24)
+                                   State_Diag%Archive_AerMassSPA        .or. &  !(crb, 07/11/24)
                                    State_Diag%Archive_AerMassSOAGX      .or. &
                                    State_Diag%Archive_AerMassSOAIE      .or. &
                                    State_Diag%Archive_AerMassTSOA       .or. &
@@ -13328,6 +13392,15 @@ CONTAINS
                    RC       = RC                                            )
     IF ( RC /= GC_SUCCESS ) RETURN
 
+    CALL Finalize( diagId   = 'AerMassSLA',                                  & !(crb,07/11/24)
+                   Ptr2Data = State_Diag%AerMassSLA,                         &
+                   RC       = RC                                            )
+    IF ( RC /= GC_SUCCESS ) RETURN
+
+    CALL Finalize( diagId   = 'AerMassSPA',                                  & !(crb,07/11/24)
+                   Ptr2Data = State_Diag%AerMassSPA,                         &
+                   RC       = RC                                            )
+    IF ( RC /= GC_SUCCESS ) RETURN
     CALL Finalize( diagId   = 'AerMassSOAGX',                                &
                    Ptr2Data = State_Diag%AerMassSOAGX,                       &
                    RC       = RC                                            )
@@ -15611,6 +15684,16 @@ CONTAINS
 
     ELSE IF ( TRIM( Name_AllCaps ) == 'AERMASSAL2O3' ) THEN !(crb, 08/02/24)
        IF ( isDesc    ) Desc  = 'Mass of alumina aerosol'
+       IF ( isUnits   ) Units = 'ug m-3'
+       IF ( isRank    ) Rank  =  3
+
+    ELSE IF ( TRIM( Name_AllCaps ) == 'AERMASSSLA' ) THEN   !(crb, 07/11/24)
+       IF ( isDesc    ) Desc  = 'Mass of stratospheric liquid aerosol'
+       IF ( isUnits   ) Units = 'ug m-3'
+       IF ( isRank    ) Rank  =  3
+
+    ELSE IF ( TRIM( Name_AllCaps ) == 'AERMASSSPA' ) THEN   !(crb, 07/11/24)
+       IF ( isDesc    ) Desc  = 'Mass of stratospheric particulate aerosol'
        IF ( isUnits   ) Units = 'ug m-3'
        IF ( isRank    ) Rank  =  3
 

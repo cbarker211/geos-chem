@@ -2080,8 +2080,11 @@ CONTAINS
        ! Add stratospheric aerosols to sulfate
        !========================================
 
-       ! Only calculate if in the stratosphere or mesosphere, and if conc [kg/kg] > 6e-10
-       IF ((IS_STRAT) .AND. (Spc(id_SO4)%Conc(I,J,L) > 6e-10)) THEN
+       ! Only calculate if in the stratosphere or mesosphere, and if conc [kg/m3] > 6e-10
+       IF ((IS_STRAT) .AND. (State_Chm%AerMass%SLA(I,J,L) > 2e-12)) THEN
+
+          !print 150
+          !150 format ('Adding to sulfate')
           
           !--------------------------------------------------
           ! Work out the volume of aerosol to add to sulfate 
@@ -2111,6 +2114,10 @@ CONTAINS
           Spc(id_DST2)%Conc(I,J,L)  = 0.0_fp
           Spc(id_DST3)%Conc(I,J,L)  = 0.0_fp
           Spc(id_DST4)%Conc(I,J,L)  = 0.0_fp
+       
+       !ELSE
+          !print 155
+          !155 format ('Not adding to sulfate')
        
        ENDIF
 
