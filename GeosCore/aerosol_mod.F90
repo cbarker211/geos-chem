@@ -1516,7 +1516,7 @@ CONTAINS
           !$OMP PRIVATE( AW0,      QW0,     SSW0,     ASYW0,    REFF      ) &
           !$OMP PRIVATE( SCALEA,   SCALEQ,  SCALESSA, SCALEASY, FRAC      ) &
           !$OMP PRIVATE( SCALER,   SCALEOD, SCALEVOL, DRYAREA,  TAERVOL   ) &
-          !$OMP PRIVATE( TK,       CONSEXP, VPRESH2O, RELHUM              ) &
+          !$OMP PRIVATE( TK,       CONSEXP, VPRESH2O, RELHUM,   BCSCAT_AE ) &
 #ifdef RRTMG
           !$OMP PRIVATE( IR                                               ) &
 #endif
@@ -1526,6 +1526,36 @@ CONTAINS
           DO L = 1, State_Grid%NZ
           DO J = 1, State_Grid%NY
           DO I = 1, State_Grid%NX
+
+             ! Zero private loop variables
+             IRH       = 0
+             S         = 0
+             FRAC      = 0.0_fp
+             AW0       = 0.0_fp
+             QW0       = 0.0_fp
+             SSW0      = 0.0_fp
+             ASYW0     = 0.0_fp
+             REFF      = 0.0_fp
+             SCALEA    = 0.0_fp
+             SCALEQ    = 0.0_fp
+             SCALESSA  = 0.0_fp
+             SCALEASY  = 0.0_fp
+             SCALER    = 0.0_fp
+             SCALEOD   = 0.0_fp
+             SCALEVOL  = 0.0_fp
+             DRYAREA   = 0.0_fp
+             TAERVOL   = 0.0_fp
+             TK        = 0.0_fp
+             CONSEXP   = 0.0_fp
+             VPRESH2O  = 0.0_fp
+             RELHUM    = 0.0_fp
+             RHOSTRAT  = 0.0_fp
+             RAER      = 0.0_fp
+             SADSTRAT  = 0.0_fp
+             XSASTRAT  = 0.0_fp
+             VDRY      = 0.0_fp
+             VH2O      = 0.0_fp
+             BCSCAT_AE = 0.0_fp
 
              ! Skip non-chemistry boxes
              IF ( .not. State_Met%InChemGrid(I,J,L) ) CYCLE
