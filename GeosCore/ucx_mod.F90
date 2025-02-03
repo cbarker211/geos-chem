@@ -2081,45 +2081,45 @@ CONTAINS
        !========================================
 
        ! Only calculate if in the stratosphere or mesosphere, and if conc [kg/m3] > 6e-10
-       IF ((IS_STRAT) .AND. (State_Chm%AerMass%SLA(I,J,L) > 2e-12)) THEN
-
-          !print 150
-          !150 format ('Adding to sulfate')
-          
-          !--------------------------------------------------
-          ! Work out the volume of aerosol to add to sulfate 
-          !--------------------------------------------------
-          ! Define the densities
-          AERDENS(1) = State_Chm%SpcData(id_BCPI)%Info%Density
-          AERDENS(2) = State_Chm%SpcData(id_BCPO)%Info%Density
-          AERDENS(3) = State_Chm%SpcData(id_AL2O3)%Info%Density
-          AERDENS(4) = State_Chm%SpcData(id_DST2)%Info%Density
-          AERDENS(5) = State_Chm%SpcData(id_DST3)%Info%Density
-          AERDENS(6) = State_Chm%SpcData(id_DST4)%Info%Density
-          AERDENS(7) = State_Chm%SpcData(id_SO4)%Info%Density
-          
-          ! Add the non-sulfate aerosol mass to the sulfate aerosol mass.
-          Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_BCPI)%Conc(I,J,L)  * AERDENS(7) / AERDENS(1))
-          Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_BCPO)%Conc(I,J,L)  * AERDENS(7) / AERDENS(2))
-          Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_AL2O3)%Conc(I,J,L) * AERDENS(7) / AERDENS(3))
-          Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_DST2)%Conc(I,J,L)  * AERDENS(7) / AERDENS(4))
-          Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_DST3)%Conc(I,J,L)  * AERDENS(7) / AERDENS(5))
-          Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_DST4)%Conc(I,J,L)  * AERDENS(7) / AERDENS(6))
-
-          ! Remove the non-sulfate aerosol mass.
-          Spc(id_BCPI)%Conc(I,J,L)  = 0.0_fp
-          Spc(id_BCPO)%Conc(I,J,L)  = 0.0_fp
-          Spc(id_AL2O3)%Conc(I,J,L) = 0.0_fp
-          Spc(id_DST1)%Conc(I,J,L)  = 0.0_fp
-          Spc(id_DST2)%Conc(I,J,L)  = 0.0_fp
-          Spc(id_DST3)%Conc(I,J,L)  = 0.0_fp
-          Spc(id_DST4)%Conc(I,J,L)  = 0.0_fp
-       
-       !ELSE
-          !print 155
-          !155 format ('Not adding to sulfate')
-       
-       ENDIF
+       !IF ((IS_STRAT) .AND. (State_Chm%AerMass%SLA(I,J,L) > 2e-12)) THEN
+       !
+       !   !print 150
+       !   !150 format ('Adding to sulfate')
+       !   
+       !   !--------------------------------------------------
+       !   ! Work out the volume of aerosol to add to sulfate 
+       !   !--------------------------------------------------
+       !   ! Define the densities
+       !   AERDENS(1) = State_Chm%SpcData(id_BCPI)%Info%Density
+       !   AERDENS(2) = State_Chm%SpcData(id_BCPO)%Info%Density
+       !   AERDENS(3) = State_Chm%SpcData(id_AL2O3)%Info%Density
+       !   AERDENS(4) = State_Chm%SpcData(id_DST2)%Info%Density
+       !   AERDENS(5) = State_Chm%SpcData(id_DST3)%Info%Density
+       !   AERDENS(6) = State_Chm%SpcData(id_DST4)%Info%Density
+       !   AERDENS(7) = State_Chm%SpcData(id_SO4)%Info%Density
+       !   
+       !   ! Add the non-sulfate aerosol mass to the sulfate aerosol mass.
+       !   Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_BCPI)%Conc(I,J,L)  * AERDENS(7) / AERDENS(1))
+       !   Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_BCPO)%Conc(I,J,L)  * AERDENS(7) / AERDENS(2))
+       !   Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_AL2O3)%Conc(I,J,L) * AERDENS(7) / AERDENS(3))
+       !   Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_DST2)%Conc(I,J,L)  * AERDENS(7) / AERDENS(4))
+       !   Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_DST3)%Conc(I,J,L)  * AERDENS(7) / AERDENS(5))
+       !   Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_DST4)%Conc(I,J,L)  * AERDENS(7) / AERDENS(6))
+       !
+       !   ! Remove the non-sulfate aerosol mass.
+       !   Spc(id_BCPI)%Conc(I,J,L)  = 0.0_fp
+       !   Spc(id_BCPO)%Conc(I,J,L)  = 0.0_fp
+       !   Spc(id_AL2O3)%Conc(I,J,L) = 0.0_fp
+       !   Spc(id_DST1)%Conc(I,J,L)  = 0.0_fp
+       !   Spc(id_DST2)%Conc(I,J,L)  = 0.0_fp
+       !   Spc(id_DST3)%Conc(I,J,L)  = 0.0_fp
+       !   Spc(id_DST4)%Conc(I,J,L)  = 0.0_fp
+       !
+       !!ELSE
+       !   !print 155
+       !   !155 format ('Not adding to sulfate')
+       !
+       !ENDIF
 
        ! Calculate mixing ratios of other relevant species
        H2SO4SUM = Spc(id_SO4)%Conc(I,J,L) * INVAIR / &
