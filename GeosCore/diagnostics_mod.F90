@@ -1740,6 +1740,7 @@ CONTAINS
     REAL(fp),      POINTER :: OCFOPOA     (:,:)
     REAL(fp),      POINTER :: BCPI        (:,:,:)
     REAL(fp),      POINTER :: BCPO        (:,:,:)
+    REAL(fp),      POINTER :: BCCoat      (:,:,:) !(crb, 31/01/25)
     REAL(fp),      POINTER :: OCPI        (:,:,:)
     REAL(fp),      POINTER :: OCPO        (:,:,:)
     REAL(fp),      POINTER :: OCPISOA     (:,:,:)
@@ -1809,6 +1810,7 @@ CONTAINS
     OCFOPOA     => State_Chm%AerMass%OCFOPOA
     BCPI        => State_Chm%AerMass%BCPI
     BCPO        => State_Chm%AerMass%BCPO
+    BCCoat      => State_Chm%AerMass%BCCoat !(crb, 31/01/25)
     OCPI        => State_Chm%AerMass%OCPI
     OCPO        => State_Chm%AerMass%OCPO
     OCPISOA     => State_Chm%AerMass%OCPISOA
@@ -1961,6 +1963,13 @@ CONTAINS
        IF ( State_Diag%Archive_AerMassBC ) THEN
           State_Diag%AerMassBC(I,J,L) = ( BCPI(I,J,L) + BCPO(I,J,L) ) * &
                                           kgm3_to_ugm3
+       ENDIF
+
+       !--------------------------------------
+       ! AerMassBC [ug C/m3]
+       !--------------------------------------
+       IF ( State_Diag%Archive_AerMassBCCoat ) THEN
+          State_Diag%AerMassBCCoat(I,J,L) = BCCoat(I,J,L) * kgm3_to_ugm3
        ENDIF
 
        !--------------------------------------
@@ -2159,6 +2168,7 @@ CONTAINS
     OCFOPOA     => NULL()
     BCPI        => NULL()
     BCPO        => NULL()
+    BCCoat      => NULL()
     OCPI        => NULL()
     OCPO        => NULL()
     OCPISOA     => NULL()

@@ -598,6 +598,9 @@ MODULE State_Diag_Mod
      REAL(f4),           POINTER :: AerMassBC(:,:,:)
      LOGICAL                     :: Archive_AerMassBC
 
+     REAL(f4),           POINTER :: AerMassBCCoat(:,:,:)
+     LOGICAL                     :: Archive_AerMassBCCoat
+
      REAL(f4),           POINTER :: AerMassHMS(:,:,:)
      LOGICAL                     :: Archive_AerMassHMS
 
@@ -2019,6 +2022,9 @@ CONTAINS
 
     State_Diag%AerMassBC                           => NULL()
     State_Diag%Archive_AerMassBC                   = .FALSE.
+
+    State_Diag%AerMassBCCoat                       => NULL()
+    State_Diag%Archive_AerMassBCCoat               = .FALSE.
 
     State_Diag%AerMassHMS                          => NULL()
     State_Diag%Archive_AerMassHMS                  = .FALSE.
@@ -9032,6 +9038,28 @@ CONTAINS
        ENDIF
 
        !-------------------------------------------------------------------
+       ! Aerosol mass of sulfate coated black carbon [ug/m3]
+       !-------------------------------------------------------------------
+       diagID = 'AerMassBCCoat'
+       CALL Init_and_Register(                                               &
+            Input_Opt      = Input_Opt,                                      &
+            State_Chm      = State_Chm,                                      &
+            State_Diag     = State_Diag,                                     &
+            State_Grid     = State_Grid,                                     &
+            DiagList       = Diag_List,                                      &
+            TaggedDiagList = TaggedDiag_List,                                &
+            Ptr2Data       = State_Diag%AerMassBCCoat,                       &
+            archiveData    = State_Diag%Archive_AerMassBCCoat,               &
+            diagId         = diagId,                                         &
+            RC             = RC                                             )
+
+       IF ( RC /= GC_SUCCESS ) THEN
+          errMsg = TRIM( errMsg_ir ) // TRIM( diagId )
+          CALL GC_Error( errMsg, RC, thisLoc )
+          RETURN
+       ENDIF
+
+       !-------------------------------------------------------------------
        ! Aerosol mass of NH4 [ug/m3]
        !-------------------------------------------------------------------
        diagID = 'AerMassNH4'
@@ -9571,7 +9599,7 @@ CONTAINS
        ! array has not been allocated.
        ! Added alumina (crb, 08/02/24)
        !-------------------------------------------------------------------
-       DO N = 1, 28
+       DO N = 1, 29
 
           ! Select the diagnostic ID
           SELECT CASE( N )
@@ -9634,6 +9662,8 @@ CONTAINS
                 diagID = 'AerMassSLA'
              CASE( 28 ) ! (crb, 08/02/24)
                 diagID = 'AerMassSPA'
+             CASE( 29 ) ! (crb, 31/01/25)
+                diagID = 'AerMassBCCoat'   
           END SELECT
 
           ! Exit if any of the above are in the diagnostic list
@@ -12019,6 +12049,7 @@ CONTAINS
                                    State_Diag%Archive_AerMassAL2O3      .or. &  !(crb, 08/02/24)
                                    State_Diag%Archive_AerMassSLA        .or. &  !(crb, 07/11/24)
                                    State_Diag%Archive_AerMassSPA        .or. &  !(crb, 07/11/24)
+                                   State_Diag%Archive_AerMassBCCoat     .or. &  !(crb, 31/01/25)
                                    State_Diag%Archive_AerMassSOAGX      .or. &
                                    State_Diag%Archive_AerMassSOAIE      .or. &
                                    State_Diag%Archive_AerMassTSOA       .or. &
@@ -13339,6 +13370,11 @@ CONTAINS
 
     CALL Finalize( diagId   = 'AerMassBC',                                   &
                    Ptr2Data = State_Diag%AerMassBC,                          &
+                   RC       = RC                                            )
+    IF ( RC /= GC_SUCCESS ) RETURN
+
+    CALL Finalize( diagId   = 'AerMassBCCoat',                                   &
+                   Ptr2Data = State_Diag%AerMassBCCoat,                          &
                    RC       = RC                                            )
     IF ( RC /= GC_SUCCESS ) RETURN
 
@@ -15630,6 +15666,11 @@ CONTAINS
 
     ELSE IF ( TRIM( Name_AllCaps ) == 'AERMASSBC' ) THEN
        IF ( isDesc    ) Desc  = 'Mass of black carbon aerosol (OA:OC=2.1)'
+       IF ( isUnits   ) Units = 'ug C m-3'
+       IF ( isRank    ) Rank  =  3
+
+    ELSE IF ( TRIM( Name_AllCaps ) == 'AERMASSBCCoat' ) THEN
+       IF ( isDesc    ) Desc  = 'Mass of sulfate coated black carbon aerosol'
        IF ( isUnits   ) Units = 'ug C m-3'
        IF ( isRank    ) Rank  =  3
 

@@ -91,6 +91,7 @@ MODULE AEROSOL_MOD
   INTEGER :: id_AL2O3                                 ! (crb, 07/02/24)
   INTEGER :: id_SOAGX, id_SOAIE
   INTEGER :: id_INDIOL,id_LVOCOA
+  INTEGER :: id_BCCoat                                ! (crb, 31/01/25)
 
   ! Index to map between NRHAER and species database hygroscopic species
   ! NOTE: Increasing value of NRHAER in CMN_SIZE_Mod.F90 (e.g. if there is
@@ -483,6 +484,9 @@ CONTAINS
           ! Hydrophobic BC [kg/m3]
           State_Chm%AerMass%BCPO(I,J,L) = Spc(id_BCPO)%Conc(I,J,L) / AIRVOL(I,J,L)
 
+          ! Sulfate Coated BC [kg/m3]
+          State_Chm%AerMass%BCCoat(I,J,L) = Spc(id_BCCoat)%Conc(I,J,L) / AIRVOL(I,J,L)
+
           ! Hydrophobic OC [kg/m3]
           ! SOAupdate: Treat either OCPO (x2.1) or POA (x1.4)
           IF ( IS_POA ) THEN
@@ -505,6 +509,7 @@ CONTAINS
           State_Chm%AerMass%OCPI(I,J,L)    = MAX( State_Chm%AerMass%OCPI(I,J,L), 1e-35_fp )
           State_Chm%AerMass%BCPO(I,J,L)    = MAX( State_Chm%AerMass%BCPO(I,J,L), 1e-35_fp )
           State_Chm%AerMass%OCPO(I,J,L)    = MAX( State_Chm%AerMass%OCPO(I,J,L), 1e-35_fp )
+          State_Chm%AerMass%BCCoat(I,J,L)  = MAX( State_Chm%AerMass%BCCoat(I,J,L), 1e-35_fp )
 
        ENDIF ! LCARB
 
@@ -1653,12 +1658,13 @@ CONTAINS
                 IF (N.eq.2) THEN
 
                    IF (LBCAE) THEN
+                      ! Hydrophilic BC
                       BCSCAT_AE = ODAER(I,J,L,IWV,N)*SCALESSA*SSAA(IWV,1,N)
                       ODAER(I,J,L,IWV,N) = ODAER(I,J,L,IWV,N) * &
                                 ( BCAE_1 + SCALESSA*SSAA(IWV,1,N) - &
                                   SCALESSA*SSAA(IWV,1,N)*BCAE_1 )
 
-                      !now combine with hydrophilic OD as before
+                      ! Hydrophobic BC
                       BCSCAT_AE = BCSCAT_AE + SSAA(IWV,1,N) * &
                                   0.75d0 * BXHEIGHT(I,J,L) * &
                                   State_Chm%AerMass%DAERSL(I,J,L,N-1) * QQAA(IWV,1,N)  / &
@@ -1668,6 +1674,17 @@ CONTAINS
                                   0.75d0 * BXHEIGHT(I,J,L) * &
                                   State_Chm%AerMass%DAERSL(I,J,L,N-1) * QQAA(IWV,1,N)  / &
                                   ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
+
+                      ! Sulfate coated BC
+                      !BCSCAT_AE = BCSCAT_AE + SSAA(IWV,1,N) * &
+                      !            0.75d0 * BXHEIGHT(I,J,L) * &
+                      !            State_Chm%AerMass%BCCoat(I,J,L) * QQAA(IWV,1,N)  / &
+                      !            ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
+                      !ODAER(I,J,L,IWV,N) = ODAER(I,J,L,IWV,N) + &
+                      !     (BCAE_2+SSAA(IWV,1,N) - SSAA(IWV,1,N)*BCAE_2) * &
+                      !            0.75d0 * BXHEIGHT(I,J,L) * &
+                      !            State_Chm%AerMass%BCCoat(I,J,L) * QQAA(IWV,1,N)  / &
+                      !            ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
 
                    ELSE
                       !now combine with hydrophilic OD as before

@@ -39,6 +39,7 @@ MODULE AerMass_Container_Mod
      ! OCFOPOA     : OM/OC for OPOA, OCPI, OCPO         [unitless] - used in carbon_mod
      ! BCPI        : Hydrophilic black carbon aerosol   [kg/m3]
      ! BCPO        : Hydrophobic black carbon aerosol   [kg/m3]
+     ! BCCoat      : Sulfate coated black carbon aerosol[kg/m3]
      ! OCPI        : Hydrophilic organic carbon aerosol [kg/m3]
      ! OCPO        : Hydrophobic organic carbon aerosol [kg/m3]
      ! OCPISOA     : Hydrophilic OC + SOA aerosol       [kg/m3]
@@ -70,6 +71,7 @@ MODULE AerMass_Container_Mod
      REAL(fp), POINTER :: OCFOPOA    (:,:)
      REAL(fp), POINTER :: BCPI       (:,:,:)
      REAL(fp), POINTER :: BCPO       (:,:,:)
+     REAL(fp), POINTER :: BCCoat     (:,:,:)
      REAL(fp), POINTER :: OCPI       (:,:,:)
      REAL(fp), POINTER :: OCPO       (:,:,:)
      REAL(fp), POINTER :: OCPISOA    (:,:,:)
@@ -210,6 +212,15 @@ CONTAINS
        RETURN
     ENDIF
     Aer%BCPO = 0.0_fp
+
+    ALLOCATE( Aer%BCCoat( NX, NY, NZ ), STAT=RC )
+    CALL GC_CheckVar( 'BCCoat', 0, RC )
+    IF ( RC /= GC_SUCCESS ) THEN
+       errMsg = 'Error allocating array BCCoat!'
+       CALL GC_Error( errMsg, RC, thisLoc )
+       RETURN
+    ENDIF
+    Aer%BCCoat = 0.0_fp
 
     ALLOCATE( Aer%OCPI( NX, NY, NZ ), STAT=RC )
     CALL GC_CheckVar( 'OCPI', 0, RC )
@@ -509,6 +520,13 @@ CONTAINS
        CALL GC_CheckVar( 'Aer%BCPO', 2, RC )
        IF ( RC /= GC_SUCCESS ) RETURN
        Aer%BCPO => NULL()
+    ENDIF
+
+    IF ( ASSOCIATED( Aer%BCCoat ) ) THEN
+       DEALLOCATE( Aer%BCCoat, STAT=RC )
+       CALL GC_CheckVar( 'Aer%BCCoat', 2, RC )
+       IF ( RC /= GC_SUCCESS ) RETURN
+       Aer%BCCoat => NULL()
     ENDIF
 
     IF ( ASSOCIATED( Aer%OCPI ) ) THEN

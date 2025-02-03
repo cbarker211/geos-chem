@@ -168,6 +168,7 @@ MODULE UCX_MOD
   INTEGER :: id_NIT,     id_NO,       id_NO2,    id_NO3,   id_O3
   INTEGER :: id_OClO,    id_PAN,      id_SO2,    id_SO4,   id_DST4 !(crb, 30/10/24)
   INTEGER :: id_AL2O3,   id_BCPO,     id_DST1,   id_DST2,  id_DST3 !(crb, 30/10/24)
+  INTEGER :: id_BCCoat  !(crb, 31/01/25)
 
 CONTAINS
 !
@@ -2105,6 +2106,9 @@ CONTAINS
           Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_DST2)%Conc(I,J,L)  * AERDENS(7) / AERDENS(4))
           Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_DST3)%Conc(I,J,L)  * AERDENS(7) / AERDENS(5))
           Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_DST4)%Conc(I,J,L)  * AERDENS(7) / AERDENS(6))
+          
+          ! Account for the BC lensing effect by adding the mass of BC to a new coated species.
+          Spc(id_BCCoat)%Conc(I,J,L)  = Spc(id_BCPI)%Conc(I,J,L) + Spc(id_BCPO)%Conc(I,J,L)
 
           ! Remove the non-sulfate aerosol mass.
           Spc(id_BCPI)%Conc(I,J,L)  = 0.0_fp
@@ -4384,6 +4388,7 @@ CONTAINS
     id_DST2  = Ind_('DST2'      ) !(crb 30/10/24)
     id_DST3  = Ind_('DST3'      ) !(crb 30/10/24)
     id_DST4  = Ind_('DST4'      ) !(crb 30/10/24)
+    id_BCCoat = Ind_('BCCoat'   ) !(crb 31/01/25)
 
     ! Print info
     IF ( Input_Opt%Verbose ) THEN
