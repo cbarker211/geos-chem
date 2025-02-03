@@ -1649,25 +1649,30 @@ CONTAINS
                                      State_Chm%AerMass%WAERSL(I,J,L,N) * QQAA(IWV,1,N)    / &
                                      ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
 
-                !Include BC absorption enhancement (xnw, 8/24/15)
+                ! Black Carbon
                 IF (N.eq.2) THEN
 
+                   ! Include BC absorption enhancement (xnw, 8/24/15)
                    IF (LBCAE) THEN
-                      BCSCAT_AE = ODAER(I,J,L,IWV,N)*SCALESSA*SSAA(IWV,1,N)
-                      ODAER(I,J,L,IWV,N) = ODAER(I,J,L,IWV,N) * &
-                                ( BCAE_1 + SCALESSA*SSAA(IWV,1,N) - &
-                                  SCALESSA*SSAA(IWV,1,N)*BCAE_1 )
-
-                      !now combine with hydrophilic OD as before
-                      BCSCAT_AE = BCSCAT_AE + SSAA(IWV,1,N) * &
-                                  0.75d0 * BXHEIGHT(I,J,L) * &
-                                  State_Chm%AerMass%DAERSL(I,J,L,N-1) * QQAA(IWV,1,N)  / &
-                                  ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
-                      ODAER(I,J,L,IWV,N)= ODAER(I,J,L,IWV,N) + &
-                           (BCAE_2+SSAA(IWV,1,N) - SSAA(IWV,1,N)*BCAE_2) * &
-                                  0.75d0 * BXHEIGHT(I,J,L) * &
-                                  State_Chm%AerMass%DAERSL(I,J,L,N-1) * QQAA(IWV,1,N)  / &
-                                  ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
+                      
+                      ! Only apply absorption enhancement in troposphere
+                      IF ( State_Met%InTroposphere(I,J,L) ) THEN
+                         BCSCAT_AE = ODAER(I,J,L,IWV,N)*SCALESSA*SSAA(IWV,1,N)
+                         ODAER(I,J,L,IWV,N) = ODAER(I,J,L,IWV,N) * &
+                                  ( BCAE_1 + SCALESSA*SSAA(IWV,1,N) - &
+                                     SCALESSA*SSAA(IWV,1,N)*BCAE_1 )
+                         
+                         !now combine with hydrophilic OD as before
+                         BCSCAT_AE = BCSCAT_AE + SSAA(IWV,1,N) * &
+                                     0.75d0 * BXHEIGHT(I,J,L) * &
+                                     State_Chm%AerMass%DAERSL(I,J,L,N-1) * QQAA(IWV,1,N)  / &
+                                     ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
+                         ODAER(I,J,L,IWV,N)= ODAER(I,J,L,IWV,N) + &
+                               (BCAE_2+SSAA(IWV,1,N) - SSAA(IWV,1,N)*BCAE_2) * &
+                                     0.75d0 * BXHEIGHT(I,J,L) * &
+                                     State_Chm%AerMass%DAERSL(I,J,L,N-1) * QQAA(IWV,1,N)  / &
+                                     ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
+                      ENDIF
 
                    ELSE
                       !now combine with hydrophilic OD as before
