@@ -683,6 +683,10 @@ CONTAINS
                       ! Now apply hydrophobic using single scattering albedo for zero humidity
                       AERSP(L,S_rhx) = AERSP(L,S_rhx) + State_Chm%AerMass%BCPO(I,J,L) &
                            * ( Input_Opt%BCAE_2 + SAA(ind_1000,K_rh0) * (1.d0 - Input_Opt%BCAE_2) )
+
+                      ! Now apply coated
+                      AERSP(L,S_rhx) = AERSP(L,S_rhx) + State_Chm%AerMass%BCCoat(I,J,L) &
+                           * ( Input_Opt%BCAE_3 + SAA(ind_1000,K_rh0) * (1.d0 - Input_Opt%BCAE_3) )
                    ELSE
 
                       ! No BC absorption enhancement

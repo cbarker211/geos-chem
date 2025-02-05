@@ -123,6 +123,7 @@ MODULE Input_Opt_Mod
      LOGICAL                     :: LBCAE
      REAL(fp)                    :: BCAE_1
      REAL(fp)                    :: BCAE_2
+     REAL(fp)                    :: BCAE_3
      ! for nitrate aerosol photolysis (TMS, 23/08/2018)
      LOGICAL                     :: hvAerNIT
      REAL(fp)                    :: hvAerNIT_JNIT

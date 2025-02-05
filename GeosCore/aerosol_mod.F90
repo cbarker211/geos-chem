@@ -1114,7 +1114,7 @@ CONTAINS
     LOGICAL             :: LRAD
     LOGICAL             :: LBCAE  ! (xnw, 8/24/15)
     REAL(fp)            :: GF_RH
-    REAL(fp)            :: BCAE_1, BCAE_2
+    REAL(fp)            :: BCAE_1, BCAE_2, BCAE_3
 
     ! Pointers to State_Chm%Phot
     INTEGER,  POINTER   :: IWVREQUIRED(:)
@@ -1174,6 +1174,7 @@ CONTAINS
     LBCAE                = Input_Opt%LBCAE !(xnw, 8/24/15)
     BCAE_1               = Input_Opt%BCAE_1
     BCAE_2               = Input_Opt%BCAE_2
+    BCAE_3               = Input_Opt%BCAE_3
 
     ! Initialize pointers
     IWVREQUIRED => State_Chm%Phot%IWVREQUIRED ! WL indexes for interpolation
@@ -1654,37 +1655,44 @@ CONTAINS
                                      State_Chm%AerMass%WAERSL(I,J,L,N) * QQAA(IWV,1,N)    / &
                                      ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
 
-                !Include BC absorption enhancement (xnw, 8/24/15)
+                ! Black Carbon
                 IF (N.eq.2) THEN
-
+                   
+                   ! Include BC absorption enhancement (xnw, 8/24/15)
                    IF (LBCAE) THEN
-                      ! Hydrophilic BC
-                      BCSCAT_AE = ODAER(I,J,L,IWV,N)*SCALESSA*SSAA(IWV,1,N)
-                      ODAER(I,J,L,IWV,N) = ODAER(I,J,L,IWV,N) * &
-                                ( BCAE_1 + SCALESSA*SSAA(IWV,1,N) - &
-                                  SCALESSA*SSAA(IWV,1,N)*BCAE_1 )
 
-                      ! Hydrophobic BC
+                      ! Only apply absorption enhancement for non-coated aerosol in troposphere
+                      IF ( State_Met%InTroposphere(I,J,L) ) THEN
+                      
+                         ! Hydrophilic BC
+                         BCSCAT_AE = ODAER(I,J,L,IWV,N)*SCALESSA*SSAA(IWV,1,N)
+                         ODAER(I,J,L,IWV,N) = ODAER(I,J,L,IWV,N) * &
+                                   ( BCAE_1 + SCALESSA*SSAA(IWV,1,N) - &
+                                     SCALESSA*SSAA(IWV,1,N)*BCAE_1 )
+
+                         ! Hydrophobic BC
+                         BCSCAT_AE = BCSCAT_AE + SSAA(IWV,1,N) * &
+                                     0.75d0 * BXHEIGHT(I,J,L) * &
+                                     State_Chm%AerMass%DAERSL(I,J,L,N-1) * QQAA(IWV,1,N)  / &
+                                     ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
+                         ODAER(I,J,L,IWV,N)= ODAER(I,J,L,IWV,N) + &
+                              (BCAE_2+SSAA(IWV,1,N) - SSAA(IWV,1,N)*BCAE_2) * &
+                                     0.75d0 * BXHEIGHT(I,J,L) * &
+                                     State_Chm%AerMass%DAERSL(I,J,L,N-1) * QQAA(IWV,1,N)  / &
+                                     ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
+
+                      ENDIF
+
+                      ! Apply absorption enhancement for coated bc throughout atmosphere
                       BCSCAT_AE = BCSCAT_AE + SSAA(IWV,1,N) * &
                                   0.75d0 * BXHEIGHT(I,J,L) * &
-                                  State_Chm%AerMass%DAERSL(I,J,L,N-1) * QQAA(IWV,1,N)  / &
+                                  State_Chm%AerMass%BCCoat(I,J,L) * QQAA(IWV,1,N)  / &
                                   ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
-                      ODAER(I,J,L,IWV,N)= ODAER(I,J,L,IWV,N) + &
-                           (BCAE_2+SSAA(IWV,1,N) - SSAA(IWV,1,N)*BCAE_2) * &
+                      ODAER(I,J,L,IWV,N) = ODAER(I,J,L,IWV,N) + &
+                           (BCAE_3+SSAA(IWV,1,N) - SSAA(IWV,1,N)*BCAE_3) * &
                                   0.75d0 * BXHEIGHT(I,J,L) * &
-                                  State_Chm%AerMass%DAERSL(I,J,L,N-1) * QQAA(IWV,1,N)  / &
+                                  State_Chm%AerMass%BCCoat(I,J,L) * QQAA(IWV,1,N)  / &
                                   ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
-
-                      ! Sulfate coated BC
-                      !BCSCAT_AE = BCSCAT_AE + SSAA(IWV,1,N) * &
-                      !            0.75d0 * BXHEIGHT(I,J,L) * &
-                      !            State_Chm%AerMass%BCCoat(I,J,L) * QQAA(IWV,1,N)  / &
-                      !            ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
-                      !ODAER(I,J,L,IWV,N) = ODAER(I,J,L,IWV,N) + &
-                      !     (BCAE_2+SSAA(IWV,1,N) - SSAA(IWV,1,N)*BCAE_2) * &
-                      !            0.75d0 * BXHEIGHT(I,J,L) * &
-                      !            State_Chm%AerMass%BCCoat(I,J,L) * QQAA(IWV,1,N)  / &
-                      !            ( MSDENS(N) * REAA(1,N) * 1.0D-6 )
 
                    ELSE
                       !now combine with hydrophilic OD as before
@@ -1920,14 +1928,6 @@ CONTAINS
 
        ENDDO !Loop over NAER
     ENDDO !End loop over NWVS
-
-    ! Print aerosol radii
-    !print 145
-    !145 format ('After Wavelength Loop')
-    !print 150, State_Chm%AeroRadi(1,1,1,1),State_Chm%AeroRadi(1,1,1,2),State_Chm%AeroRadi(1,1,1,3),State_Chm%AeroRadi(1,1,1,4),State_Chm%AeroRadi(1,1,1,5),State_Chm%AeroRadi(1,1,1,6),State_Chm%AeroRadi(1,1,1,7)
-    !150 format ('Dust Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
-    !print 155, State_Chm%AeroRadi(1,1,1,8),State_Chm%AeroRadi(1,1,1,9),State_Chm%AeroRadi(1,1,1,10),State_Chm%AeroRadi(1,1,1,11),State_Chm%AeroRadi(1,1,1,12),State_Chm%AeroRadi(1,1,1,13),State_Chm%AeroRadi(1,1,1,14),State_Chm%AeroRadi(1,1,1,15)
-    !155 format ('Else Radii:'e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3,2x,e12.3)
 
     !==============================================================
     ! Account for stratospheric aerosols (SDE 04/17/13)
@@ -2355,6 +2355,7 @@ CONTAINS
     ! Add tracer ID flags as module variables (bmy, 6/16/16)
     id_BCPI   = Ind_( 'BCPI'   )
     id_BCPO   = Ind_( 'BCPO'   )
+    id_BCCoat = Ind_( 'BCCoat' )
     id_DST1   = Ind_( 'DST1'   )
     id_DST2   = Ind_( 'DST2'   )
     id_DST3   = Ind_( 'DST3'   )

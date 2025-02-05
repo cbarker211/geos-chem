@@ -1729,6 +1729,19 @@ CONTAINS
     Input_Opt%BCAE_2 = Cast_and_RoundOff( v_str, places=2 )
 
     !------------------------------------------------------------------------
+    ! Define BC absorption enhancement (crb, 04/02/25)
+    !------------------------------------------------------------------------
+    key   = "aerosols%carbon%enhance_black_carbon_absorption%coated"
+    v_str = MISSING_STR
+    CALL QFYAML_Add_Get( Config, TRIM( key ), v_str, "", RC )
+    IF ( RC /= GC_SUCCESS ) THEN
+       errMsg = 'Error parsing ' // TRIM( key ) // '!'
+       CALL GC_Error( errMsg, RC, thisLoc )
+       RETURN
+    ENDIF
+    Input_Opt%BCAE_3 = Cast_and_RoundOff( v_str, places=2 )
+
+    !------------------------------------------------------------------------
     ! Use secondary organic aerosols?
     !------------------------------------------------------------------------
     key    = "aerosols%complex_SOA%activate"
