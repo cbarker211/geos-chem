@@ -804,9 +804,9 @@ CONTAINS
     LOGICAL                :: NATCOL
 
     ! Specific to each class
-    REAL(fp)               :: RWET(4),CONST_V(4)
-    REAL(fp)               :: RHO(4),RATIO_R(2),REFF(2)
-    REAL(fp)               :: VTS(State_Grid%NZ,4)
+    REAL(fp)               :: RWET(5),CONST_V(5)
+    REAL(fp)               :: RHO(5),RATIO_R(2),REFF(2)
+    REAL(fp)               :: VTS(State_Grid%NZ,5)
 
     ! Used for old Seinfeld & Pandis slip factor calc
     REAL(fp)               :: sp_Lambda, sp_Num
@@ -818,6 +818,7 @@ CONTAINS
     INTEGER, PARAMETER     :: ILIQ = 2
     INTEGER, PARAMETER     :: IALU = 3 !(crb 27/02/24)
     INTEGER, PARAMETER     :: IBCPO = 4 !(crb 27/02/24)
+    INTEGER, PARAMETER     :: IBCCOAT = 5 !(crb 27/02/24)
     INTEGER, PARAMETER     :: NSETTLE = 2
     INTEGER                :: IAERO
     LOGICAL                :: RUNCALC
@@ -948,6 +949,10 @@ CONTAINS
 
              !Use dry radius in m from FJX_scat-aer.dat following BCPI (crb 27/02/24)
              RWET(IBCPO) = RAA(29) * 1.0e-6_fp  ! Same value as BCPO above stratopause.
+             
+             !Add settling of BCCoat. Same as ILIQ because we have added the mass of BC to SO4 elsewhere.
+             RWET(IBCCOAT) = State_Chm%RAD_AER(I,J,L,I_SLA)*1.e-2_fp
+             RHO(IBCCOAT) = State_Chm%RHO_AER(I,J,L,I_SLA)
 
              ! Get aerosol properties
              RWET(ILIQ) = State_Chm%RAD_AER(I,J,L,I_SLA)*1.e-2_fp
@@ -975,7 +980,7 @@ CONTAINS
              VISC = 1.458e-6_fp * (Temp)**(1.5e+0_fp) &
                     / ( Temp + 110.4e+0_fp )
 
-             DO IAERO=1,4
+             DO IAERO=1,5
                 IF (RWET(IAERO).le.TINY(0e+0_fp)) THEN
                    VTS(L,IAERO) = 0e+0_fp
                 ELSE
@@ -1038,7 +1043,7 @@ CONTAINS
        L    = State_Grid%NZ
        DELZ = State_Met%BXHEIGHT(I,J,L)
 
-       DO IAERO=1,4
+       DO IAERO=1,5
           CONST_V(IAERO) = 1.e+0_fp / (1.e+0_fp + DTCHEM * VTS(L,IAERO) / DELZ)
        ENDDO
 
@@ -1080,8 +1085,9 @@ CONTAINS
        Spc(id_BCPI)%Conc(I,J,L) = Spc(id_BCPI)%Conc(I,J,L) * CONST_V(IBC)
 
        !(crb 27/02/24) 
-       Spc(id_AL2O3)%Conc(I,J,L) = Spc(id_AL2O3)%Conc(I,J,L) * CONST_V(IALU)
-       Spc(id_BCPO)%Conc(I,J,L)  = Spc(id_BCPO)%Conc(I,J,L)  * CONST_V(IBCPO)
+       Spc(id_AL2O3)%Conc(I,J,L)   = Spc(id_AL2O3)%Conc(I,J,L)  * CONST_V(IALU)
+       Spc(id_BCPO)%Conc(I,J,L)    = Spc(id_BCPO)%Conc(I,J,L)   * CONST_V(IBCPO)
+       Spc(id_BCCoat)%Conc(I,J,L)  = Spc(id_BCCoat)%Conc(I,J,L) * CONST_V(IBCCOAT)
 
        DO L = State_Grid%NZ-1,1,-1
           IF ( State_Met%InTroposphere(I,J,L+1) ) CYCLE
@@ -1142,6 +1148,11 @@ CONTAINS
                                * ( Spc(id_BCPO)%Conc(I,J,L) &
                                    + DTCHEM * VTS(L+1,IBCPO) / DELZ1 &
                                    * Spc(id_BCPO)%Conc(I,J,L+1) )
+          Spc(id_BCCoat)%Conc(I,J,L) = 1.e+0_fp/(1.e+0_fp+DTCHEM &
+                               * VTS(L,IBCCOAT) / DELZ) &
+                               * ( Spc(id_BCCoat)%Conc(I,J,L) &
+                                   + DTCHEM * VTS(L+1,IBCCOAT) / DELZ1 &
+                                   * Spc(id_BCCoat)%Conc(I,J,L+1) )
        ENDDO
 
        ! Now perform trapezoidal scheme for particulates
