@@ -15669,7 +15669,7 @@ CONTAINS
        IF ( isUnits   ) Units = 'ug C m-3'
        IF ( isRank    ) Rank  =  3
 
-    ELSE IF ( TRIM( Name_AllCaps ) == 'AERMASSBCCoat' ) THEN
+    ELSE IF ( TRIM( Name_AllCaps ) == 'AERMASSBCCOAT' ) THEN
        IF ( isDesc    ) Desc  = 'Mass of sulfate coated black carbon aerosol'
        IF ( isUnits   ) Units = 'ug C m-3'
        IF ( isRank    ) Rank  =  3

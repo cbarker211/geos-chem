@@ -2119,7 +2119,7 @@ CONTAINS
           Spc(id_SO4)%Conc(I,J,L) = Spc(id_SO4)%Conc(I,J,L) + (Spc(id_DST4)%Conc(I,J,L)  * AERDENS(7) / AERDENS(6))
           
           ! Account for the BC lensing effect by adding the mass of BC to a new coated species.
-          Spc(id_BCCoat)%Conc(I,J,L)  = Spc(id_BCPI)%Conc(I,J,L) + Spc(id_BCPO)%Conc(I,J,L)
+          Spc(id_BCCoat)%Conc(I,J,L) = Spc(id_BCCoat)%Conc(I,J,L) + Spc(id_BCPI)%Conc(I,J,L) + Spc(id_BCPO)%Conc(I,J,L)
 
           ! Remove the non-sulfate aerosol mass.
           Spc(id_BCPI)%Conc(I,J,L)  = 0.0_fp
