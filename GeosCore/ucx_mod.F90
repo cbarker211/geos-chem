@@ -2092,7 +2092,7 @@ CONTAINS
        ! Add stratospheric aerosols to sulfate
        !========================================
 
-       ! Only calculate if in the stratosphere or mesosphere, and if conc [kg/m3] > 6e-10
+       ! Only calculate if in the stratosphere or mesosphere, and if conc [kg/m3] > 2e-12
        IF ((IS_STRAT) .AND. (State_Chm%AerMass%SLA(I,J,L) > 2e-12)) THEN
 
           !print 150
